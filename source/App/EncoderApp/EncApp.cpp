@@ -46,6 +46,9 @@
 #include "EncoderLib/AnnexBwrite.h"
 #include "EncoderLib/EncLibCommon.h"
 
+// Arthur
+#include "EncoderLib/MemoryTracer.h"
+
 using namespace std;
 
 //! \ingroup EncoderApp
@@ -1008,6 +1011,17 @@ void EncApp::createLib( const int layerIdx )
   m_ext360 = new TExt360AppEncTop( *this, m_cEncLib.getGOPEncoder()->getExt360Data(), *( m_cEncLib.getGOPEncoder() ), *m_orgPic );
 #endif
 
+// Arthur
+#if MEM_TRACE_EN
+  int wFrame = m_cEncLib.getSourceWidth();
+  int hFrame = m_cEncLib.getSourceHeight();
+
+  int searchRange = m_cEncLib.getSearchRange();
+
+  MemoryTracer::init("mem_trace.txt", wFrame, hFrame, searchRange);
+
+#endif
+
   if( m_gopBasedTemporalFilterEnabled )
   {
     m_temporalFilter.init( m_FrameSkip, m_inputBitDepth, m_MSBExtendedBitDepth, m_internalBitDepth, m_iSourceWidth, m_iSourceHeight,
@@ -1048,6 +1062,11 @@ void EncApp::destroyLib()
 #endif
 
   printRateSummary();
+
+  // Arthur
+  #if MEM_TRACE_EN
+    MemoryTracer::finalize();
+  #endif
 }
 
 bool EncApp::encodePrep( bool& eos )
