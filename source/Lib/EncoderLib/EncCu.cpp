@@ -53,7 +53,8 @@
 #include <cmath>
 #include <algorithm>
 
-
+// Arthur
+#include "MemoryTracer.h"
 
 //! \ingroup EncoderLib
 //! \{
@@ -360,6 +361,12 @@ void EncCu::compressCtu( CodingStructure& cs, const UnitArea& area, const unsign
 #endif
   if( auto* cacheCtrl = dynamic_cast<CacheBlkInfoCtrl*>( m_modeCtrl ) ) { cacheCtrl->tick(); }
 #endif
+
+// Arthur
+#if MEM_TRACE_EN
+  MemoryTracer::initCTU(area.lx(), area.ly());
+#endif
+
   // init the partitioning manager
   QTBTPartitioner partitioner;
   partitioner.initCtu(area, CH_L, *cs.slice);
@@ -677,6 +684,13 @@ void EncCu::xCompressCU( CodingStructure*& tempCS, CodingStructure*& bestCS, Par
   const TreeType treeTypeParent  = partitioner.treeType;
   const ChannelType chTypeParent = partitioner.chType;
   const UnitArea currCsArea = clipArea( CS::getArea( *bestCS, bestCS->area, partitioner.chType ), *tempCS->picture );
+
+// Arthur
+#if MEM_TRACE_EN
+  const int xCU  = tempCS->area.Y().lumaPos().x;
+  const int yCU  = tempCS->area.Y().lumaPos().y;
+  MemoryTracer::initCU(xCU, yCU, partitioner.currMtDepth);
+#endif
 
   m_modeCtrl->initCULevel( partitioner, *tempCS );
   if( partitioner.currQtDepth == 0 && partitioner.currMtDepth == 0 && !tempCS->slice->isIntra() && ( sps.getUseSBT() || sps.getUseInterMTS() ) )

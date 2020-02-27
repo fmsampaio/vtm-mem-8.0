@@ -44,6 +44,8 @@
 #include "CommonLib/dtrace_blockstatistics.h"
 #endif
 
+// Arthur
+#include "MemoryTracer.h"
 
 #include <math.h>
 
@@ -1222,6 +1224,11 @@ void EncSlice::compressSlice( Picture* pcPic, const bool bCompressEntireSlice, c
   pcSlice->setSliceQpBase( pcSlice->getSliceQp() );
 
   m_CABACEstimator->initCtxModels( *pcSlice );
+
+// Arthur
+#if MEM_TRACE_EN
+  MemoryTracer::initFrame(pcSlice->getPOC());
+#endif
 
 #if ENABLE_SPLIT_PARALLELISM
   for( int jId = 1; jId < m_pcLib->getNumCuEncStacks(); jId++ )
