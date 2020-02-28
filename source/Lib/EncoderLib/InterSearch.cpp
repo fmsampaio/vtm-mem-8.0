@@ -3830,9 +3830,6 @@ void InterSearch::xTZSearch( const PredictionUnit& pu,
   std::stringstream ss;
   ss << iDist;
   MemoryTracer::insertFirstSearch(iDist);
-  if(iDist == 256) {
-    MemoryTracer::firstOrRasterSearchFlag = false;
-  }
 #endif
 
     if ( bFirstSearchDiamond == 1 )
