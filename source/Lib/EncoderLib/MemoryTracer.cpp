@@ -4,6 +4,7 @@
 
 std::fstream MemoryTracer::fp;
 bool MemoryTracer::firstOrRasterSearchFlag;
+std::string MemoryTracer::videoSequence;
 
 MemoryTracer::MemoryTracer() {
 }
@@ -15,6 +16,8 @@ void MemoryTracer::init(std::string fileName, unsigned int wFrame, unsigned int 
 	std::string outStr = "";
 	
 	std::stringstream ss;
+    ss << "VVC" << " ";
+	ss << videoSequence << " ";
 	ss << wFrame << " ";
 	ss << hFrame << " ";
 	ss << searchRange << std::endl;
@@ -25,6 +28,12 @@ void MemoryTracer::init(std::string fileName, unsigned int wFrame, unsigned int 
 
 void MemoryTracer::finalize() {
 	fp.close();
+}
+
+void MemoryTracer::setVideoSequence(std::string videoFile) {
+	int initPos = videoFile.rfind("/");
+	
+	videoSequence = videoFile.substr(initPos+1);
 }
 
 void MemoryTracer::initFrame(int idCurrFrame) {
@@ -47,12 +56,14 @@ void MemoryTracer::initCTU(int xLCU, int yLCU) {
 	fp << outStr;
 }
 
-void MemoryTracer::initCU(int xCU, int yCU, int depthCU) {
-	std::string outStr = "U ";
+void MemoryTracer::initCU(int xCU, int yCU, int depthCU, int widthCU, int heightCU) {
+	std::string outStr = "VU ";
 	
 	std::stringstream ss;
 	ss << xCU << " ";
 	ss << yCU << " ";
+    ss << widthCU << " ";
+	ss << heightCU << " ";
 	ss << depthCU << std::endl;
 	
 	outStr += ss.str();
@@ -63,8 +74,6 @@ void MemoryTracer::initPU(int idPart, int sizePU, int idRefFrame) {
 	std::string outStr = "P ";
 	
 	std::stringstream ss;
-	ss << idPart << " ";
-	ss << sizePU << " ";
 	ss << idRefFrame << std::endl;
 	
 	outStr += ss.str();
@@ -120,4 +129,8 @@ void MemoryTracer::finalizeCU() {
 
 void MemoryTracer::finalizeFrame() {
 	fp << "i" << std::endl;
+}
+
+void MemoryTracer::debug(std::string text) {
+	fp << text << std::endl;
 }

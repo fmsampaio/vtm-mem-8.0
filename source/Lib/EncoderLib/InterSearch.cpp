@@ -35,6 +35,8 @@
  *  \brief    encoder inter search class
  */
 
+// Arthur
+#include "MemoryTracer.h"
 #include "InterSearch.h"
 
 
@@ -329,6 +331,11 @@ void InterSearch::storeAffineMotion( Mv acAffineMv[2][3], int16_t affineRefIdx[2
 
 inline void InterSearch::xTZSearchHelp( IntTZSearchStruct& rcStruct, const int iSearchX, const int iSearchY, const uint8_t ucPointNr, const uint32_t uiDistance )
 {
+// Arthur
+#if MEM_TRACE_EN
+  MemoryTracer::insertCandidate(iSearchX, iSearchY);
+#endif
+
   Distortion  uiSad = 0;
 
 //  CHECK(!( !( rcStruct.searchRange.left > iSearchX || rcStruct.searchRange.right < iSearchX || rcStruct.searchRange.top > iSearchY || rcStruct.searchRange.bottom < iSearchY )), "Unspecified error");
@@ -3298,6 +3305,11 @@ Distortion InterSearch::xGetAffineTemplateCost( PredictionUnit& pu, PelUnitBuf& 
 
 void InterSearch::xMotionEstimation(PredictionUnit& pu, PelUnitBuf& origBuf, RefPicList eRefPicList, Mv& rcMvPred, int iRefIdxPred, Mv& rcMv, int& riMVPIdx, uint32_t& ruiBits, Distortion& ruiCost, const AMVPInfo& amvpInfo, bool bBi)
 {
+// Arthur
+#if MEM_TRACE_EN
+  MemoryTracer::initPU(0, 0, iRefIdxPred);
+#endif
+
   if( pu.cu->cs->sps->getUseBcw() && pu.cu->BcwIdx != BCW_DEFAULT && !bBi && xReadBufferedUniMv(pu, eRefPicList, iRefIdxPred, rcMvPred, rcMv, ruiBits, ruiCost) )
   {
     return;
@@ -4660,7 +4672,15 @@ void InterSearch::xPredAffineInterSearch( PredictionUnit&       pu,
         Mv mvFour[3];
         for ( int i = 0; i < mvNum; i++ )
         {
-          mvFour[i] = affine4Para ? m_affineMotion.acMvAffine4Para[iRefList][i] : m_affineMotion.acMvAffine6Para[iRefList][i];
+          // Arthur
+          // mvFour[i] = affine4Para ? m_affineMotion.acMvAffine4Para[iRefList][i] : m_affineMotion.acMvAffine6Para[iRefList][i];
+          if(affine4Para) {
+            mvFour[i] = m_affineMotion.acMvAffine4Para[iRefList][i];
+          }
+          else {
+            mvFour[i] = m_affineMotion.acMvAffine6Para[iRefList][i];
+          }
+
           mvFour[i].roundAffinePrecInternal2Amvr(pu.cu->imv);
         }
 

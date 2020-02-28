@@ -364,7 +364,9 @@ void EncCu::compressCtu( CodingStructure& cs, const UnitArea& area, const unsign
 
 // Arthur
 #if MEM_TRACE_EN
-  MemoryTracer::initCTU(area.lx(), area.ly());
+  if(cs.slice->getSliceType() != I_SLICE) {
+    MemoryTracer::initCTU(area.lx(), area.ly());
+  }
 #endif
 
   // init the partitioning manager
@@ -687,9 +689,13 @@ void EncCu::xCompressCU( CodingStructure*& tempCS, CodingStructure*& bestCS, Par
 
 // Arthur
 #if MEM_TRACE_EN
-  const int xCU  = tempCS->area.Y().lumaPos().x;
-  const int yCU  = tempCS->area.Y().lumaPos().y;
-  MemoryTracer::initCU(xCU, yCU, partitioner.currMtDepth);
+  if(tempCS->slice->getSliceType() != I_SLICE) {
+    const int xCU  = tempCS->area.Y().lumaPos().x;
+    const int yCU  = tempCS->area.Y().lumaPos().y;
+    const int widthCU = (int) tempCS->area.lwidth();
+    const int heightCU = (int) tempCS->area.lheight();
+    MemoryTracer::initCU(xCU, yCU, partitioner.currDepth, widthCU, heightCU);
+  }
 #endif
 
   m_modeCtrl->initCULevel( partitioner, *tempCS );

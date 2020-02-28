@@ -1227,7 +1227,9 @@ void EncSlice::compressSlice( Picture* pcPic, const bool bCompressEntireSlice, c
 
 // Arthur
 #if MEM_TRACE_EN
-  MemoryTracer::initFrame(pcSlice->getPOC());
+  if(pcSlice->getSliceType() != I_SLICE) {
+    MemoryTracer::initFrame(pcSlice->getPOC());
+  }
 #endif
 
 #if ENABLE_SPLIT_PARALLELISM
