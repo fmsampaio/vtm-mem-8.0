@@ -3813,8 +3813,28 @@ void InterSearch::xTZSearch( const PredictionUnit& pu,
 
   // first search around best position up to now.
   // The following works as a "subsampled/log" window search around the best candidate
+
+// Arthur
+#if MEM_TRACE_EN
+  stringstream ss;
+  ss << iStartX << " " << iStartY;
+  MemoryTracer::debug("CE " + ss.str());
+  MemoryTracer::firstOrRasterSearchFlag = true;
+#endif
+
   for ( iDist = 1; iDist <= iSearchRange; iDist*=2 )
   {
+
+// Arthur
+#if MEM_TRACE_EN
+  std::stringstream ss;
+  ss << iDist;
+  MemoryTracer::insertFirstSearch(iDist);
+  if(iDist == 256) {
+    MemoryTracer::firstOrRasterSearchFlag = false;
+  }
+#endif
+
     if ( bFirstSearchDiamond == 1 )
     {
       xTZ8PointDiamondSearch ( cStruct, iStartX, iStartY, iDist, bFirstCornersForDiamondDist1 );
@@ -3829,6 +3849,11 @@ void InterSearch::xTZSearch( const PredictionUnit& pu,
       break;
     }
   }
+
+// Arthur
+#if MEM_TRACE_EN
+  MemoryTracer::firstOrRasterSearchFlag = false;
+#endif
 
   if (!bNewZeroNeighbourhoodTest)
   {
@@ -3890,6 +3915,13 @@ void InterSearch::xTZSearch( const PredictionUnit& pu,
       localsr.top    /= 2;
       localsr.bottom /= 2;
     }
+
+// Arthur
+#if MEM_TRACE_EN
+  MemoryTracer::insertRasterSearch(localsr.left, localsr.right, localsr.top, localsr.bottom, iWindowSize);
+  MemoryTracer::firstOrRasterSearchFlag = true;
+#endif
+
     cStruct.uiBestDistance = iWindowSize;
     for ( iStartY = localsr.top; iStartY <= localsr.bottom; iStartY += iWindowSize )
     {
@@ -3898,11 +3930,23 @@ void InterSearch::xTZSearch( const PredictionUnit& pu,
         xTZSearchHelp( cStruct, iStartX, iStartY, 0, iWindowSize );
       }
     }
+
+// Arthur
+#if MEM_TRACE_EN
+  MemoryTracer::firstOrRasterSearchFlag = false;
+#endif
+
   }
   else
   {
     if ( bEnableRasterSearch && ( ((int)(cStruct.uiBestDistance) >= iRaster) || bAlwaysRasterSearch ) )
     {
+// Arthur
+#if MEM_TRACE_EN
+      MemoryTracer::insertRasterSearch(sr.left, sr.right, sr.top, sr.bottom, iRaster);
+      MemoryTracer::firstOrRasterSearchFlag = true;
+#endif
+
       cStruct.uiBestDistance = iRaster;
       for ( iStartY = sr.top; iStartY <= sr.bottom; iStartY += iRaster )
       {
@@ -3911,6 +3955,12 @@ void InterSearch::xTZSearch( const PredictionUnit& pu,
           xTZSearchHelp( cStruct, iStartX, iStartY, 0, iRaster );
         }
       }
+
+// Arthur
+#if MEM_TRACE_EN
+      MemoryTracer::firstOrRasterSearchFlag = false;
+#endif
+
     }
   }
 

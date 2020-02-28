@@ -30,9 +30,9 @@ public:
     static void initCTU(int xLCU, int yLCU);
     static void initCU(int xCU, int yCU, int depthCU, int widthCU, int heightCU);
     static void initPU(int idPart, int sizePU, int idRefFrame);
-    static void insertFirstSearch(int xStart, int yStart);
+    static void insertFirstSearch(int itId);
     static void insertCandidate(int xCand, int yCand);
-    static void insertRasterSearch(int xLeft, int xRight, int yTop, int yBottom);
+    static void insertRasterSearch(int xLeft, int xRight, int yTop, int yBottom, int rasterStep);
     static void finalizeCTU();
     static void finalizeFrame();
 	static void finalizeCU();

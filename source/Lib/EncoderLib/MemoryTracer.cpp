@@ -80,36 +80,38 @@ void MemoryTracer::initPU(int idPart, int sizePU, int idRefFrame) {
 	fp << outStr;
 }
 
-void MemoryTracer::insertFirstSearch(int xStart, int yStart) {
+void MemoryTracer::insertFirstSearch(int itId) {
 	std::string outStr = "F ";
 	
 	std::stringstream ss;
-	ss << xStart << " ";
-	ss << yStart << std::endl;
+	ss << itId << std::endl;
 	
 	outStr += ss.str();
 	fp << outStr;
 }
 
 void MemoryTracer::insertCandidate(int xCand, int yCand) {
-	std::string outStr = "C ";
+	if(!firstOrRasterSearchFlag) {
+		std::string outStr = "C ";
 	
-	std::stringstream ss;
-	ss << xCand << " ";
-	ss << yCand << std::endl;
-	
-	outStr += ss.str();
-	fp << outStr;
+		std::stringstream ss;
+		ss << xCand << " ";
+		ss << yCand << std::endl;
+		
+		outStr += ss.str();
+		fp << outStr;
+	}
 }
 
-void MemoryTracer::insertRasterSearch(int xLeft, int xRight, int yTop, int yBottom) {
+void MemoryTracer::insertRasterSearch(int xLeft, int xRight, int yTop, int yBottom, int rasterStep) {
 	std::string outStr = "R ";
 	
 	std::stringstream ss;
 	ss << xLeft << " ";
 	ss << xRight << " ";
 	ss << yTop << " ";
-	ss << yBottom << std::endl;
+	ss << yBottom << " ";
+    ss << rasterStep << std::endl;
 	
 	outStr += ss.str();
 	fp << outStr;
