@@ -524,17 +524,34 @@ bool IntraSearch::estIntraPredLumaQT(CodingUnit &cu, Partitioner &partitioner, c
             PelBuf   tmpOrg = m_tmpStorageLCU.getBuf(tmpArea);
             tmpOrg.copyFrom(piOrg);
             tmpOrg.rspSignal(m_pcReshape->getFwdLUT());
+
+#if INTRA_INTER_MEM_EVAL_EN
+            m_pcRdCost->setIntraDistParam(distParamSad, tmpOrg, piPred, sps.getBitDepth(CHANNEL_TYPE_LUMA), COMPONENT_Y,
+                                     false);   // Use SAD cost
+            m_pcRdCost->setIntraDistParam(distParamHad, tmpOrg, piPred, sps.getBitDepth(CHANNEL_TYPE_LUMA), COMPONENT_Y,
+                                     true);   // Use HAD (SATD) cost
+#else
             m_pcRdCost->setDistParam(distParamSad, tmpOrg, piPred, sps.getBitDepth(CHANNEL_TYPE_LUMA), COMPONENT_Y,
                                      false);   // Use SAD cost
             m_pcRdCost->setDistParam(distParamHad, tmpOrg, piPred, sps.getBitDepth(CHANNEL_TYPE_LUMA), COMPONENT_Y,
                                      true);   // Use HAD (SATD) cost
+
+#endif
           }
           else
           {
+#if INTRA_INTER_MEM_EVAL_EN
+            m_pcRdCost->setIntraDistParam(distParamSad, piOrg, piPred, sps.getBitDepth(CHANNEL_TYPE_LUMA), COMPONENT_Y,
+                                     false);   // Use SAD cost
+            m_pcRdCost->setIntraDistParam(distParamHad, piOrg, piPred, sps.getBitDepth(CHANNEL_TYPE_LUMA), COMPONENT_Y,
+                                     true);   // Use HAD (SATD) cost
+#else
             m_pcRdCost->setDistParam(distParamSad, piOrg, piPred, sps.getBitDepth(CHANNEL_TYPE_LUMA), COMPONENT_Y,
                                      false);   // Use SAD cost
             m_pcRdCost->setDistParam(distParamHad, piOrg, piPred, sps.getBitDepth(CHANNEL_TYPE_LUMA), COMPONENT_Y,
                                      true);   // Use HAD (SATD) cost
+#endif
+
           }
 
           distParamSad.applyWeight = false;
@@ -1356,8 +1373,15 @@ void IntraSearch::estIntraPredChromaQT( CodingUnit &cu, Partitioner &partitioner
         CompArea areaCb = pu.Cb();
         PelBuf orgCb = cs.getOrgBuf(areaCb);
         PelBuf predCb = cs.getPredBuf(areaCb);
+
+#if INTRA_INTER_MEM_EVAL_EN
+        m_pcRdCost->setIntraDistParam(distParamSad, orgCb, predCb, pu.cs->sps->getBitDepth(CHANNEL_TYPE_CHROMA), COMPONENT_Cb, false);
+        m_pcRdCost->setIntraDistParam(distParamSatd, orgCb, predCb, pu.cs->sps->getBitDepth(CHANNEL_TYPE_CHROMA), COMPONENT_Cb, true);
+#else
         m_pcRdCost->setDistParam(distParamSad, orgCb, predCb, pu.cs->sps->getBitDepth(CHANNEL_TYPE_CHROMA), COMPONENT_Cb, false);
         m_pcRdCost->setDistParam(distParamSatd, orgCb, predCb, pu.cs->sps->getBitDepth(CHANNEL_TYPE_CHROMA), COMPONENT_Cb, true);
+#endif
+
         distParamSad.applyWeight = false;
         distParamSatd.applyWeight = false;
         if (PU::isLMCMode(mode))
@@ -1375,8 +1399,15 @@ void IntraSearch::estIntraPredChromaQT( CodingUnit &cu, Partitioner &partitioner
         CompArea areaCr = pu.Cr();
         PelBuf orgCr = cs.getOrgBuf(areaCr);
         PelBuf predCr = cs.getPredBuf(areaCr);
+
+#if INTRA_INTER_MEM_EVAL_EN
+        m_pcRdCost->setIntraDistParam(distParamSad, orgCr, predCr, pu.cs->sps->getBitDepth(CHANNEL_TYPE_CHROMA), COMPONENT_Cr, false);
+        m_pcRdCost->setIntraDistParam(distParamSatd, orgCr, predCr, pu.cs->sps->getBitDepth(CHANNEL_TYPE_CHROMA), COMPONENT_Cr, true);
+#else
         m_pcRdCost->setDistParam(distParamSad, orgCr, predCr, pu.cs->sps->getBitDepth(CHANNEL_TYPE_CHROMA), COMPONENT_Cr, false);
         m_pcRdCost->setDistParam(distParamSatd, orgCr, predCr, pu.cs->sps->getBitDepth(CHANNEL_TYPE_CHROMA), COMPONENT_Cr, true);
+#endif
+
         distParamSad.applyWeight = false;
         distParamSatd.applyWeight = false;
         if (PU::isLMCMode(mode))

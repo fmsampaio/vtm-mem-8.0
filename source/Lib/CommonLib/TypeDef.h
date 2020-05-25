@@ -64,7 +64,7 @@
 
 #define JVET_Q0118_CLEANUPS                               1 // JVET-Q0118: AHG8/AHG9: Scalability HLS cleanups
 
-#define JVET_Q0416_WRAPAROUND_OFFSET                      1  //JVET-Q0416: subtract £¨CtbSizeY / MinCbSizeY + 2£© from wraparound offset before signaling
+#define JVET_Q0416_WRAPAROUND_OFFSET                      1  //JVET-Q0416: subtract ï¿½ï¿½CtbSizeY / MinCbSizeY + 2ï¿½ï¿½ from wraparound offset before signaling
 
 #define JVET_P0125_EOS_LAYER_SPECIFIC                     1 // JVET-P0125: Specify EOS NAL units to be layer specific
 
@@ -363,7 +363,7 @@ typedef std::pair<int, int>  TrCost;
 #define ENABLE_SIMD_OPT                                 ( SIMD_ENABLE && !RExt__HIGH_BIT_DEPTH_SUPPORT )    ///< SIMD optimizations, no impact on RD performance
 #define ENABLE_SIMD_OPT_MCIF                            ( 1 && ENABLE_SIMD_OPT )                            ///< SIMD optimization for the interpolation filter, no impact on RD performance
 #define ENABLE_SIMD_OPT_BUFFER                          ( 1 && ENABLE_SIMD_OPT )                            ///< SIMD optimization for the buffer operations, no impact on RD performance
-#define ENABLE_SIMD_OPT_DIST                            ( 1 && ENABLE_SIMD_OPT )                            ///< SIMD optimization for the distortion calculations(SAD,SSE,HADAMARD), no impact on RD performance
+#define ENABLE_SIMD_OPT_DIST                            ( 0 && ENABLE_SIMD_OPT )                            ///< SIMD optimization for the distortion calculations(SAD,SSE,HADAMARD), no impact on RD performance
 #define ENABLE_SIMD_OPT_AFFINE_ME                       ( 1 && ENABLE_SIMD_OPT )                            ///< SIMD optimization for affine ME, no impact on RD performance
 #define ENABLE_SIMD_OPT_ALF                             ( 1 && ENABLE_SIMD_OPT )                            ///< SIMD optimization for ALF
 #if ENABLE_SIMD_OPT_BUFFER
@@ -739,11 +739,85 @@ enum DFunc
 
   DF_SAD_INTERMEDIATE_BITDEPTH = 63,
 
+  /*Replicated enums for handling with intra-specific distortion functions */
+
+  DF_INTRA_SSE             = 100,             ///< general size SSE
+  DF_INTRA_SSE2            = DF_INTRA_SSE+1,      ///<   2xM SSE
+  DF_INTRA_SSE4            = DF_INTRA_SSE+2,      ///<   4xM SSE
+  DF_INTRA_SSE8            = DF_INTRA_SSE+3,      ///<   8xM SSE
+  DF_INTRA_SSE16           = DF_INTRA_SSE+4,      ///<  16xM SSE
+  DF_INTRA_SSE32           = DF_INTRA_SSE+5,      ///<  32xM SSE
+  DF_INTRA_SSE64           = DF_INTRA_SSE+6,      ///<  64xM SSE
+  DF_INTRA_SSE16N          = DF_INTRA_SSE+7,      ///< 16NxM SSE
+
+  DF_INTRA_SAD             = 108,             ///< general size SAD
+  DF_INTRA_SAD2            = DF_INTRA_SAD+1,      ///<   2xM SAD
+  DF_INTRA_SAD4            = DF_INTRA_SAD+2,      ///<   4xM SAD
+  DF_INTRA_SAD8            = DF_INTRA_SAD+3,      ///<   8xM SAD
+  DF_INTRA_SAD16           = DF_INTRA_SAD+4,      ///<  16xM SAD
+  DF_INTRA_SAD32           = DF_INTRA_SAD+5,      ///<  32xM SAD
+  DF_INTRA_SAD64           = DF_INTRA_SAD+6,      ///<  64xM SAD
+  DF_INTRA_SAD16N          = DF_INTRA_SAD+7,      ///< 16NxM SAD
+
+  DF_INTRA_HAD             = 116,            ///< general size Hadamard
+  DF_INTRA_HAD2            = DF_INTRA_HAD+1,      ///<   2xM HAD
+  DF_INTRA_HAD4            = DF_INTRA_HAD+2,      ///<   4xM HAD
+  DF_INTRA_HAD8            = DF_INTRA_HAD+3,      ///<   8xM HAD
+  DF_INTRA_HAD16           = DF_INTRA_HAD+4,      ///<  16xM HAD
+  DF_INTRA_HAD32           = DF_INTRA_HAD+5,      ///<  32xM HAD
+  DF_INTRA_HAD64           = DF_INTRA_HAD+6,      ///<  64xM HAD
+  DF_INTRA_HAD16N          = DF_INTRA_HAD+7,      ///< 16NxM HAD
+
+  DF_INTRA_SAD12           = 124,
+  DF_INTRA_SAD24           = 125,
+  DF_INTRA_SAD48           = 126,
+
+  DF_INTRA_MRSAD           = 127,            ///< general size MR SAD
+  DF_INTRA_MRSAD2          = DF_INTRA_MRSAD+1,    ///<   2xM MR SAD
+  DF_INTRA_MRSAD4          = DF_INTRA_MRSAD+2,    ///<   4xM MR SAD
+  DF_INTRA_MRSAD8          = DF_INTRA_MRSAD+3,    ///<   8xM MR SAD
+  DF_INTRA_MRSAD16         = DF_INTRA_MRSAD+4,    ///<  16xM MR SAD
+  DF_INTRA_MRSAD32         = DF_INTRA_MRSAD+5,    ///<  32xM MR SAD
+  DF_INTRA_MRSAD64         = DF_INTRA_MRSAD+6,    ///<  64xM MR SAD
+  DF_INTRA_MRSAD16N        = DF_INTRA_MRSAD+7,    ///< 16NxM MR SAD
+
+  DF_INTRA_MRHAD           = 135,            ///< general size MR Hadamard
+  DF_INTRA_MRHAD2          = DF_INTRA_MRHAD+1,    ///<   2xM MR HAD
+  DF_INTRA_MRHAD4          = DF_INTRA_MRHAD+2,    ///<   4xM MR HAD
+  DF_INTRA_MRHAD8          = DF_INTRA_MRHAD+3,    ///<   8xM MR HAD
+  DF_INTRA_MRHAD16         = DF_INTRA_MRHAD+4,    ///<  16xM MR HAD
+  DF_INTRA_MRHAD32         = DF_INTRA_MRHAD+5,    ///<  32xM MR HAD
+  DF_INTRA_MRHAD64         = DF_INTRA_MRHAD+6,    ///<  64xM MR HAD
+  DF_INTRA_MRHAD16N        = DF_INTRA_MRHAD+7,    ///< 16NxM MR HAD
+
+  DF_INTRA_MRSAD12         = 143,
+  DF_INTRA_MRSAD24         = 144,
+  DF_INTRA_MRSAD48         = 145,
+
+  DF_INTRA_SAD_FULL_NBIT    = 146,
+  DF_INTRA_SAD_FULL_NBIT2   = DF_INTRA_SAD_FULL_NBIT+1,    ///<   2xM SAD with full bit usage
+  DF_INTRA_SAD_FULL_NBIT4   = DF_INTRA_SAD_FULL_NBIT+2,    ///<   4xM SAD with full bit usage
+  DF_INTRA_SAD_FULL_NBIT8   = DF_INTRA_SAD_FULL_NBIT+3,    ///<   8xM SAD with full bit usage
+  DF_INTRA_SAD_FULL_NBIT16  = DF_INTRA_SAD_FULL_NBIT+4,    ///<  16xM SAD with full bit usage
+  DF_INTRA_SAD_FULL_NBIT32  = DF_INTRA_SAD_FULL_NBIT+5,    ///<  32xM SAD with full bit usage
+  DF_INTRA_SAD_FULL_NBIT64  = DF_INTRA_SAD_FULL_NBIT+6,    ///<  64xM SAD with full bit usage
+  DF_INTRA_SAD_FULL_NBIT16N = DF_INTRA_SAD_FULL_NBIT+7,    ///< 16NxM SAD with full bit usage
+
+  DF_INTRA_SSE_WTD          = 154,                ///< general size SSE
+  DF_INTRA_SSE2_WTD         = DF_INTRA_SSE_WTD+1,      ///<   4xM SSE
+  DF_INTRA_SSE4_WTD         = DF_INTRA_SSE_WTD+2,      ///<   4xM SSE
+  DF_INTRA_SSE8_WTD         = DF_INTRA_SSE_WTD+3,      ///<   8xM SSE
+  DF_INTRA_SSE16_WTD        = DF_INTRA_SSE_WTD+4,      ///<  16xM SSE
+  DF_INTRA_SSE32_WTD        = DF_INTRA_SSE_WTD+5,      ///<  32xM SSE
+  DF_INTRA_SSE64_WTD        = DF_INTRA_SSE_WTD+6,      ///<  64xM SSE
+  DF_INTRA_SSE16N_WTD       = DF_INTRA_SSE_WTD+7,      ///< 16NxM SSE
+  DF_INTRA_DEFAULT_ORI      = DF_INTRA_SSE_WTD+8,
+
 #if JVET_Q0806
   DF_SAD_WITH_MASK   = 64,
-  DF_TOTAL_FUNCTIONS = 65
+  DF_TOTAL_FUNCTIONS = 200,
 #else
-  DF_TOTAL_FUNCTIONS = 64
+  DF_TOTAL_FUNCTIONS = 200
 #endif
 };
 

@@ -180,6 +180,11 @@ public:
   void           setDistParam( DistParam &rcDP, const CPelBuf &org, const Pel* piRefY , int iRefStride, int bitDepth, ComponentID compID, int subShiftMode = 0, int step = 1, bool useHadamard = false );
   void           setDistParam( DistParam &rcDP, const CPelBuf &org, const CPelBuf &cur, int bitDepth, ComponentID compID, bool useHadamard = false );
   void           setDistParam( DistParam &rcDP, const Pel* pOrg, const Pel* piRefY, int iOrgStride, int iRefStride, int bitDepth, ComponentID compID, int width, int height, int subShiftMode = 0, int step = 1, bool useHadamard = false, bool bioApplied = false );
+
+#if INTRA_INTER_MEM_EVAL_EN
+  void           setIntraDistParam( DistParam &rcDP, const CPelBuf &org, const CPelBuf &cur, int bitDepth, ComponentID compID, bool useHadamard );
+#endif
+
 #if JVET_Q0806
   void           setDistParam( DistParam &rcDP, const CPelBuf &org, const Pel* piRefY, int iRefStride, const Pel* mask, int iMaskStride, int stepX, int iMaskStride2, int bitDepth,  ComponentID compID);
 #endif
@@ -392,6 +397,67 @@ private:
   static Distortion xCalcHADs8x16     ( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur );
   static Distortion xCalcHADs4x8      ( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur );
   static Distortion xCalcHADs8x4      ( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur );
+
+#if INTRA_INTER_MEM_EVAL_EN
+  /* 
+    Replicated distortion functions definition for distinct Inter-Intra memory analysis
+  */
+  static Distortion xIntraGetSSE           ( const DistParam& pcDtParam );
+  static Distortion xIntraGetSSE4          ( const DistParam& pcDtParam );
+  static Distortion xIntraGetSSE8          ( const DistParam& pcDtParam );
+  static Distortion xIntraGetSSE16         ( const DistParam& pcDtParam );
+  static Distortion xIntraGetSSE32         ( const DistParam& pcDtParam );
+  static Distortion xIntraGetSSE64         ( const DistParam& pcDtParam );
+  static Distortion xIntraGetSSE16N        ( const DistParam& pcDtParam );
+
+#if WCG_EXT
+  static Distortion getIntraWeightedMSE    (int compIdx, const Pel org, const Pel cur, const uint32_t uiShift, const Pel orgLuma);
+  static Distortion xIntraGetSSE_WTD       ( const DistParam& pcDtParam );
+  static Distortion xIntraGetSSE2_WTD      ( const DistParam& pcDtParam );
+  static Distortion xIntraGetSSE4_WTD      ( const DistParam& pcDtParam );
+  static Distortion xIntraGetSSE8_WTD      ( const DistParam& pcDtParam );
+  static Distortion xIntraGetSSE16_WTD     ( const DistParam& pcDtParam );
+  static Distortion xIntraGetSSE32_WTD     ( const DistParam& pcDtParam );
+  static Distortion xIntraGetSSE64_WTD     ( const DistParam& pcDtParam );
+  static Distortion xIntraGetSSE16N_WTD    ( const DistParam& pcDtParam );
+#endif
+
+  static Distortion xIntraGetSAD           ( const DistParam& pcDtParam );
+  static Distortion xIntraGetSAD4          ( const DistParam& pcDtParam );
+  static Distortion xIntraGetSAD8          ( const DistParam& pcDtParam );
+  static Distortion xIntraGetSAD16         ( const DistParam& pcDtParam );
+  static Distortion xIntraGetSAD32         ( const DistParam& pcDtParam );
+  static Distortion xIntraGetSAD64         ( const DistParam& pcDtParam );
+  static Distortion xIntraGetSAD16N        ( const DistParam& pcDtParam );
+
+  static Distortion xIntraGetSAD12         ( const DistParam& pcDtParam );
+  static Distortion xIntraGetSAD24         ( const DistParam& pcDtParam );
+  static Distortion xIntraGetSAD48         ( const DistParam& pcDtParam );
+
+  static Distortion xIntraGetSAD_full      ( const DistParam& pcDtParam );
+
+  static Distortion xIntraGetMRSAD         ( const DistParam& pcDtParam );
+  static Distortion xIntraGetMRSAD4        ( const DistParam& pcDtParam );
+  static Distortion xIntraGetMRSAD8        ( const DistParam& pcDtParam );
+  static Distortion xIntraGetMRSAD16       ( const DistParam& pcDtParam );
+  static Distortion xIntraGetMRSAD32       ( const DistParam& pcDtParam );
+  static Distortion xIntraGetMRSAD64       ( const DistParam& pcDtParam );
+  static Distortion xIntraGetMRSAD16N      ( const DistParam& pcDtParam );
+  static Distortion xIntraGetMRSAD12       ( const DistParam& pcDtParam );
+  static Distortion xIntraGetMRSAD24       ( const DistParam& pcDtParam );
+  static Distortion xIntraGetMRSAD48       ( const DistParam& pcDtParam );
+  static Distortion xIntraGetMRHADs        ( const DistParam& pcDtParam );
+
+  static Distortion xIntraGetHADs          ( const DistParam& pcDtParam );
+  static Distortion xIntraCalcHADs2x2      ( const Pel *piOrg, const Pel *piCurr, int iStrideOrg, int iStrideCur, int iStep );
+  static Distortion xIntraCalcHADs4x4      ( const Pel *piOrg, const Pel *piCurr, int iStrideOrg, int iStrideCur, int iStep );
+  static Distortion xIntraCalcHADs8x8      ( const Pel *piOrg, const Pel *piCurr, int iStrideOrg, int iStrideCur, int iStep );
+
+  static Distortion xIntraCalcHADs16x8     ( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur );
+  static Distortion xIntraCalcHADs8x16     ( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur );
+  static Distortion xIntraCalcHADs4x8      ( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur );
+  static Distortion xIntraCalcHADs8x4      ( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur );
+#endif
 
 #ifdef TARGET_SIMD_X86
   template<X86_VEXT vext>
