@@ -117,7 +117,7 @@
 // Memory research macro definitions
 // ====================================================================================================================
 
-#define MEM_TRACE_EN 1
+#define MEM_TRACE_EN 0
 #define INTRA_INTER_MEM_EVAL_EN 1
 
 
