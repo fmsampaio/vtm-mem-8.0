@@ -813,11 +813,33 @@ enum DFunc
   DF_INTRA_SSE16N_WTD       = DF_INTRA_SSE_WTD+7,      ///< 16NxM SSE
   DF_INTRA_DEFAULT_ORI      = DF_INTRA_SSE_WTD+8,
 
+  DF_AFFINE_SAD             = 200,             ///< general size SAD
+  DF_AFFINE_SAD2            = DF_AFFINE_SAD+1,      ///<   2xM SAD
+  DF_AFFINE_SAD4            = DF_AFFINE_SAD+2,      ///<   4xM SAD
+  DF_AFFINE_SAD8            = DF_AFFINE_SAD+3,      ///<   8xM SAD
+  DF_AFFINE_SAD16           = DF_AFFINE_SAD+4,      ///<  16xM SAD
+  DF_AFFINE_SAD32           = DF_AFFINE_SAD+5,      ///<  32xM SAD
+  DF_AFFINE_SAD64           = DF_AFFINE_SAD+6,      ///<  64xM SAD
+  DF_AFFINE_SAD16N          = DF_AFFINE_SAD+7,      ///< 16NxM SAD
+    
+  DF_AFFINE_HAD             = 208,            ///< general size Hadamard
+  DF_AFFINE_HAD2            = DF_AFFINE_HAD+1,      ///<   2xM HAD
+  DF_AFFINE_HAD4            = DF_AFFINE_HAD+2,      ///<   4xM HAD
+  DF_AFFINE_HAD8            = DF_AFFINE_HAD+3,      ///<   8xM HAD
+  DF_AFFINE_HAD16           = DF_AFFINE_HAD+4,      ///<  16xM HAD
+  DF_AFFINE_HAD32           = DF_AFFINE_HAD+5,      ///<  32xM HAD
+  DF_AFFINE_HAD64           = DF_AFFINE_HAD+6,      ///<  64xM HAD
+  DF_AFFINE_HAD16N          = DF_AFFINE_HAD+7,      ///< 16NxM HAD
+
+  DF_AFFINE_SAD12           = 216,
+  DF_AFFINE_SAD24           = 217,
+  DF_AFFINE_SAD48           = 218,
+
 #if JVET_Q0806
   DF_SAD_WITH_MASK   = 64,
-  DF_TOTAL_FUNCTIONS = 200,
+  DF_TOTAL_FUNCTIONS = 220,
 #else
-  DF_TOTAL_FUNCTIONS = 200
+  DF_TOTAL_FUNCTIONS = 220
 #endif
 };
 

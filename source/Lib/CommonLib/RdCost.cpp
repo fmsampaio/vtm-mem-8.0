@@ -265,6 +265,28 @@ void RdCost::init()
     m_afpDistortFunc[DF_INTRA_SAD_FULL_NBIT32 ] = RdCost::xIntraGetSAD_full;
     m_afpDistortFunc[DF_INTRA_SAD_FULL_NBIT64 ] = RdCost::xIntraGetSAD_full;
     m_afpDistortFunc[DF_INTRA_SAD_FULL_NBIT16N] = RdCost::xIntraGetSAD_full;
+
+    m_afpDistortFunc[DF_AFFINE_SAD    ] = RdCost::xAffineGetSAD;
+    m_afpDistortFunc[DF_AFFINE_SAD2   ] = RdCost::xAffineGetSAD;
+    m_afpDistortFunc[DF_AFFINE_SAD4   ] = RdCost::xAffineGetSAD4;
+    m_afpDistortFunc[DF_AFFINE_SAD8   ] = RdCost::xAffineGetSAD8;
+    m_afpDistortFunc[DF_AFFINE_SAD16  ] = RdCost::xAffineGetSAD16;
+    m_afpDistortFunc[DF_AFFINE_SAD32  ] = RdCost::xAffineGetSAD32;
+    m_afpDistortFunc[DF_AFFINE_SAD64  ] = RdCost::xAffineGetSAD64;
+    m_afpDistortFunc[DF_AFFINE_SAD16N ] = RdCost::xAffineGetSAD16N;
+                                             
+    m_afpDistortFunc[DF_AFFINE_SAD12  ] = RdCost::xAffineGetSAD12;
+    m_afpDistortFunc[DF_AFFINE_SAD24  ] = RdCost::xAffineGetSAD24;
+    m_afpDistortFunc[DF_AFFINE_SAD48  ] = RdCost::xAffineGetSAD48;
+                                             
+    m_afpDistortFunc[DF_AFFINE_HAD    ] = RdCost::xAffineGetHADs;
+    m_afpDistortFunc[DF_AFFINE_HAD2   ] = RdCost::xAffineGetHADs;
+    m_afpDistortFunc[DF_AFFINE_HAD4   ] = RdCost::xAffineGetHADs;
+    m_afpDistortFunc[DF_AFFINE_HAD8   ] = RdCost::xAffineGetHADs;
+    m_afpDistortFunc[DF_AFFINE_HAD16  ] = RdCost::xAffineGetHADs;
+    m_afpDistortFunc[DF_AFFINE_HAD32  ] = RdCost::xAffineGetHADs;
+    m_afpDistortFunc[DF_AFFINE_HAD64  ] = RdCost::xAffineGetHADs;
+    m_afpDistortFunc[DF_AFFINE_HAD16N ] = RdCost::xAffineGetHADs;
 #endif
 
 #if WCG_EXT
@@ -276,6 +298,17 @@ void RdCost::init()
   m_afpDistortFunc[DF_SSE32_WTD ] = RdCost::xGetSSE32_WTD;
   m_afpDistortFunc[DF_SSE64_WTD ] = RdCost::xGetSSE64_WTD;
   m_afpDistortFunc[DF_SSE16N_WTD] = RdCost::xGetSSE16N_WTD;
+#endif
+
+#if INTRA_INTER_MEM_EVAL_EN
+  m_afpDistortFunc[DF_INTRA_SSE_WTD   ] = RdCost::xIntraGetSSE_WTD;
+  m_afpDistortFunc[DF_INTRA_SSE2_WTD  ] = RdCost::xIntraGetSSE2_WTD;
+  m_afpDistortFunc[DF_INTRA_SSE4_WTD  ] = RdCost::xIntraGetSSE4_WTD;
+  m_afpDistortFunc[DF_INTRA_SSE8_WTD  ] = RdCost::xIntraGetSSE8_WTD;
+  m_afpDistortFunc[DF_INTRA_SSE16_WTD ] = RdCost::xIntraGetSSE16_WTD;
+  m_afpDistortFunc[DF_INTRA_SSE32_WTD ] = RdCost::xIntraGetSSE32_WTD;
+  m_afpDistortFunc[DF_INTRA_SSE64_WTD ] = RdCost::xIntraGetSSE64_WTD;
+  m_afpDistortFunc[DF_INTRA_SSE16N_WTD] = RdCost::xIntraGetSSE16N_WTD;
 #endif
 
   m_afpDistortFunc[DF_SAD_INTERMEDIATE_BITDEPTH] = RdCost::xGetSAD;
@@ -5772,6 +5805,1397 @@ Distortion RdCost::xIntraGetHADs( const DistParam &rcDtParam )
 
   return (uiSum >> DISTORTION_PRECISION_ADJUSTMENT(rcDtParam.bitDepth));
 }
+
+// --------------------------------------------------------------------------------------------------------------------
+// SAD
+// --------------------------------------------------------------------------------------------------------------------
+
+Distortion RdCost::xAffineGetSAD_full( const DistParam& rcDtParam )
+{
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xAffineGetSAD_full" << std::endl;
+#endif
+
+  CHECK( rcDtParam.applyWeight, "Cannot apply weight when using full-bit SAD!" );
+  const Pel* piOrg = rcDtParam.org.buf;
+  const Pel* piCur = rcDtParam.cur.buf;
+  int  height      = rcDtParam.org.height;
+  int  width       = rcDtParam.org.width;
+  int  iSubShift   = rcDtParam.subShift;
+  int  iSubStep    = ( 1 << iSubShift );
+  int  iStrideCur  = rcDtParam.cur.stride * iSubStep;
+  int  iStrideOrg  = rcDtParam.org.stride * iSubStep;
+
+  Distortion uiSum = 0;
+
+#define SAD_OP( ADDR ) uiSum += abs( piOrg[ADDR] - piCur[ADDR] );
+#define SAD_INC piOrg += iStrideOrg; piCur += iStrideCur;
+
+  SIZE_AWARE_PER_EL_OP( SAD_OP, SAD_INC )
+
+#undef SAD_OP
+#undef SAD_INC
+
+  uiSum <<= iSubShift;
+  return uiSum;
+}
+
+Distortion RdCost::xAffineGetSAD( const DistParam& rcDtParam )
+{
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xAffineGetSAD" << std::endl;
+#endif
+
+  if ( rcDtParam.applyWeight )
+  {
+    return RdCostWeightPrediction::xGetSADw( rcDtParam );
+  }
+
+  const Pel* piOrg           = rcDtParam.org.buf;
+  const Pel* piCur           = rcDtParam.cur.buf;
+  const int  iCols           = rcDtParam.org.width;
+        int  iRows           = rcDtParam.org.height;
+  const int  iSubShift       = rcDtParam.subShift;
+  const int  iSubStep        = ( 1 << iSubShift );
+  const int  iStrideCur      = rcDtParam.cur.stride * iSubStep;
+  const int  iStrideOrg      = rcDtParam.org.stride * iSubStep;
+  const uint32_t distortionShift = DISTORTION_PRECISION_ADJUSTMENT(rcDtParam.bitDepth);
+
+  Distortion uiSum = 0;
+
+  for( ; iRows != 0; iRows -= iSubStep )
+  {
+    for (int n = 0; n < iCols; n++ )
+    {
+      uiSum += abs( piOrg[n] - piCur[n] );
+    }
+    if (rcDtParam.maximumDistortionForEarlyExit < ( uiSum >> distortionShift ))
+    {
+      return ( uiSum >> distortionShift );
+    }
+    piOrg += iStrideOrg;
+    piCur += iStrideCur;
+  }
+
+  uiSum <<= iSubShift;
+  return ( uiSum >> distortionShift );
+}
+
+Distortion RdCost::xAffineGetSAD4( const DistParam& rcDtParam )
+{
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xAffineGetSAD4" << std::endl;
+#endif
+
+  if ( rcDtParam.applyWeight )
+  {
+    return RdCostWeightPrediction::xGetSADw( rcDtParam );
+  }
+
+  const Pel* piOrg   = rcDtParam.org.buf;
+  const Pel* piCur   = rcDtParam.cur.buf;
+  int  iRows         = rcDtParam.org.height;
+  int  iSubShift     = rcDtParam.subShift;
+  int  iSubStep      = ( 1 << iSubShift );
+  int  iStrideCur    = rcDtParam.cur.stride * iSubStep;
+  int  iStrideOrg    = rcDtParam.org.stride * iSubStep;
+
+  Distortion uiSum = 0;
+
+  for( ; iRows != 0; iRows -= iSubStep )
+  {
+    uiSum += abs( piOrg[0] - piCur[0] );
+    uiSum += abs( piOrg[1] - piCur[1] );
+    uiSum += abs( piOrg[2] - piCur[2] );
+    uiSum += abs( piOrg[3] - piCur[3] );
+
+    piOrg += iStrideOrg;
+    piCur += iStrideCur;
+  }
+
+  uiSum <<= iSubShift;
+  return (uiSum >> DISTORTION_PRECISION_ADJUSTMENT(rcDtParam.bitDepth));
+}
+
+Distortion RdCost::xAffineGetSAD8( const DistParam& rcDtParam )
+{
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xAffineGetSAD8" << std::endl;
+#endif
+
+  if ( rcDtParam.applyWeight )
+  {
+    return RdCostWeightPrediction::xGetSADw( rcDtParam );
+  }
+
+  const Pel* piOrg      = rcDtParam.org.buf;
+  const Pel* piCur      = rcDtParam.cur.buf;
+  int  iRows            = rcDtParam.org.height;
+  int  iSubShift        = rcDtParam.subShift;
+  int  iSubStep         = ( 1 << iSubShift );
+  int  iStrideCur       = rcDtParam.cur.stride * iSubStep;
+  int  iStrideOrg       = rcDtParam.org.stride * iSubStep;
+
+  Distortion uiSum = 0;
+
+  for( ; iRows != 0; iRows-=iSubStep )
+  {
+    uiSum += abs( piOrg[0] - piCur[0] );
+    uiSum += abs( piOrg[1] - piCur[1] );
+    uiSum += abs( piOrg[2] - piCur[2] );
+    uiSum += abs( piOrg[3] - piCur[3] );
+    uiSum += abs( piOrg[4] - piCur[4] );
+    uiSum += abs( piOrg[5] - piCur[5] );
+    uiSum += abs( piOrg[6] - piCur[6] );
+    uiSum += abs( piOrg[7] - piCur[7] );
+
+    piOrg += iStrideOrg;
+    piCur += iStrideCur;
+  }
+
+  uiSum <<= iSubShift;
+  return (uiSum >> DISTORTION_PRECISION_ADJUSTMENT(rcDtParam.bitDepth));
+}
+
+Distortion RdCost::xAffineGetSAD16( const DistParam& rcDtParam )
+{
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xAffineGetSAD16" << std::endl;
+#endif
+
+  if ( rcDtParam.applyWeight )
+  {
+    return RdCostWeightPrediction::xGetSADw( rcDtParam );
+  }
+
+  const Pel* piOrg      = rcDtParam.org.buf;
+  const Pel* piCur      = rcDtParam.cur.buf;
+  int  iRows            = rcDtParam.org.height;
+  int  iSubShift        = rcDtParam.subShift;
+  int  iSubStep         = ( 1 << iSubShift );
+  int  iStrideCur       = rcDtParam.cur.stride * iSubStep;
+  int  iStrideOrg       = rcDtParam.org.stride * iSubStep;
+
+  Distortion uiSum = 0;
+
+  for( ; iRows != 0; iRows -= iSubStep )
+  {
+    uiSum += abs( piOrg[0] - piCur[0] );
+    uiSum += abs( piOrg[1] - piCur[1] );
+    uiSum += abs( piOrg[2] - piCur[2] );
+    uiSum += abs( piOrg[3] - piCur[3] );
+    uiSum += abs( piOrg[4] - piCur[4] );
+    uiSum += abs( piOrg[5] - piCur[5] );
+    uiSum += abs( piOrg[6] - piCur[6] );
+    uiSum += abs( piOrg[7] - piCur[7] );
+    uiSum += abs( piOrg[8] - piCur[8] );
+    uiSum += abs( piOrg[9] - piCur[9] );
+    uiSum += abs( piOrg[10] - piCur[10] );
+    uiSum += abs( piOrg[11] - piCur[11] );
+    uiSum += abs( piOrg[12] - piCur[12] );
+    uiSum += abs( piOrg[13] - piCur[13] );
+    uiSum += abs( piOrg[14] - piCur[14] );
+    uiSum += abs( piOrg[15] - piCur[15] );
+
+    piOrg += iStrideOrg;
+    piCur += iStrideCur;
+  }
+
+  uiSum <<= iSubShift;
+  return (uiSum >> DISTORTION_PRECISION_ADJUSTMENT(rcDtParam.bitDepth));
+}
+
+Distortion RdCost::xAffineGetSAD12( const DistParam& rcDtParam )
+{
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xAffineGetSAD12" << std::endl;
+#endif
+
+  if ( rcDtParam.applyWeight )
+  {
+    return RdCostWeightPrediction::xGetSADw( rcDtParam );
+  }
+
+  const Pel* piOrg      = rcDtParam.org.buf;
+  const Pel* piCur      = rcDtParam.cur.buf;
+  int  iRows            = rcDtParam.org.height;
+  int  iSubShift        = rcDtParam.subShift;
+  int  iSubStep         = ( 1 << iSubShift );
+  int  iStrideCur       = rcDtParam.cur.stride * iSubStep;
+  int  iStrideOrg       = rcDtParam.org.stride * iSubStep;
+
+  Distortion uiSum = 0;
+
+  for( ; iRows != 0; iRows-=iSubStep )
+  {
+    uiSum += abs( piOrg[0] - piCur[0] );
+    uiSum += abs( piOrg[1] - piCur[1] );
+    uiSum += abs( piOrg[2] - piCur[2] );
+    uiSum += abs( piOrg[3] - piCur[3] );
+    uiSum += abs( piOrg[4] - piCur[4] );
+    uiSum += abs( piOrg[5] - piCur[5] );
+    uiSum += abs( piOrg[6] - piCur[6] );
+    uiSum += abs( piOrg[7] - piCur[7] );
+    uiSum += abs( piOrg[8] - piCur[8] );
+    uiSum += abs( piOrg[9] - piCur[9] );
+    uiSum += abs( piOrg[10] - piCur[10] );
+    uiSum += abs( piOrg[11] - piCur[11] );
+
+    piOrg += iStrideOrg;
+    piCur += iStrideCur;
+  }
+
+  uiSum <<= iSubShift;
+  return (uiSum >> DISTORTION_PRECISION_ADJUSTMENT(rcDtParam.bitDepth));
+}
+
+Distortion RdCost::xAffineGetSAD16N( const DistParam &rcDtParam )
+{
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xAffineGetSAD16N" << std::endl;
+#endif
+
+  const Pel* piOrg  = rcDtParam.org.buf;
+  const Pel* piCur  = rcDtParam.cur.buf;
+  int  iRows        = rcDtParam.org.height;
+  int  iCols        = rcDtParam.org.width;
+  int  iSubShift    = rcDtParam.subShift;
+  int  iSubStep     = ( 1 << iSubShift );
+  int  iStrideCur   = rcDtParam.cur.stride * iSubStep;
+  int  iStrideOrg   = rcDtParam.org.stride * iSubStep;
+
+  Distortion uiSum = 0;
+
+  for( ; iRows != 0; iRows-=iSubStep )
+  {
+    for (int n = 0; n < iCols; n+=16 )
+    {
+      uiSum += abs( piOrg[n+ 0] - piCur[n+ 0] );
+      uiSum += abs( piOrg[n+ 1] - piCur[n+ 1] );
+      uiSum += abs( piOrg[n+ 2] - piCur[n+ 2] );
+      uiSum += abs( piOrg[n+ 3] - piCur[n+ 3] );
+      uiSum += abs( piOrg[n+ 4] - piCur[n+ 4] );
+      uiSum += abs( piOrg[n+ 5] - piCur[n+ 5] );
+      uiSum += abs( piOrg[n+ 6] - piCur[n+ 6] );
+      uiSum += abs( piOrg[n+ 7] - piCur[n+ 7] );
+      uiSum += abs( piOrg[n+ 8] - piCur[n+ 8] );
+      uiSum += abs( piOrg[n+ 9] - piCur[n+ 9] );
+      uiSum += abs( piOrg[n+10] - piCur[n+10] );
+      uiSum += abs( piOrg[n+11] - piCur[n+11] );
+      uiSum += abs( piOrg[n+12] - piCur[n+12] );
+      uiSum += abs( piOrg[n+13] - piCur[n+13] );
+      uiSum += abs( piOrg[n+14] - piCur[n+14] );
+      uiSum += abs( piOrg[n+15] - piCur[n+15] );
+    }
+    piOrg += iStrideOrg;
+    piCur += iStrideCur;
+  }
+
+  uiSum <<= iSubShift;
+  return (uiSum >> DISTORTION_PRECISION_ADJUSTMENT(rcDtParam.bitDepth));
+}
+
+Distortion RdCost::xAffineGetSAD32( const DistParam &rcDtParam )
+{
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xAffineGetSAD32" << std::endl;
+#endif
+
+  if ( rcDtParam.applyWeight )
+  {
+    return RdCostWeightPrediction::xGetSADw( rcDtParam );
+  }
+
+  const Pel* piOrg      = rcDtParam.org.buf;
+  const Pel* piCur      = rcDtParam.cur.buf;
+  int  iRows            = rcDtParam.org.height;
+  int  iSubShift        = rcDtParam.subShift;
+  int  iSubStep         = ( 1 << iSubShift );
+  int  iStrideCur       = rcDtParam.cur.stride * iSubStep;
+  int  iStrideOrg       = rcDtParam.org.stride * iSubStep;
+
+  Distortion uiSum = 0;
+
+  for( ; iRows != 0; iRows-=iSubStep )
+  {
+    uiSum += abs( piOrg[0] - piCur[0] );
+    uiSum += abs( piOrg[1] - piCur[1] );
+    uiSum += abs( piOrg[2] - piCur[2] );
+    uiSum += abs( piOrg[3] - piCur[3] );
+    uiSum += abs( piOrg[4] - piCur[4] );
+    uiSum += abs( piOrg[5] - piCur[5] );
+    uiSum += abs( piOrg[6] - piCur[6] );
+    uiSum += abs( piOrg[7] - piCur[7] );
+    uiSum += abs( piOrg[8] - piCur[8] );
+    uiSum += abs( piOrg[9] - piCur[9] );
+    uiSum += abs( piOrg[10] - piCur[10] );
+    uiSum += abs( piOrg[11] - piCur[11] );
+    uiSum += abs( piOrg[12] - piCur[12] );
+    uiSum += abs( piOrg[13] - piCur[13] );
+    uiSum += abs( piOrg[14] - piCur[14] );
+    uiSum += abs( piOrg[15] - piCur[15] );
+    uiSum += abs( piOrg[16] - piCur[16] );
+    uiSum += abs( piOrg[17] - piCur[17] );
+    uiSum += abs( piOrg[18] - piCur[18] );
+    uiSum += abs( piOrg[19] - piCur[19] );
+    uiSum += abs( piOrg[20] - piCur[20] );
+    uiSum += abs( piOrg[21] - piCur[21] );
+    uiSum += abs( piOrg[22] - piCur[22] );
+    uiSum += abs( piOrg[23] - piCur[23] );
+    uiSum += abs( piOrg[24] - piCur[24] );
+    uiSum += abs( piOrg[25] - piCur[25] );
+    uiSum += abs( piOrg[26] - piCur[26] );
+    uiSum += abs( piOrg[27] - piCur[27] );
+    uiSum += abs( piOrg[28] - piCur[28] );
+    uiSum += abs( piOrg[29] - piCur[29] );
+    uiSum += abs( piOrg[30] - piCur[30] );
+    uiSum += abs( piOrg[31] - piCur[31] );
+
+    piOrg += iStrideOrg;
+    piCur += iStrideCur;
+  }
+
+  uiSum <<= iSubShift;
+  return (uiSum >> DISTORTION_PRECISION_ADJUSTMENT(rcDtParam.bitDepth));
+}
+
+Distortion RdCost::xAffineGetSAD24( const DistParam &rcDtParam )
+{
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xAffineGetSAD24" << std::endl;
+#endif
+
+  if ( rcDtParam.applyWeight )
+  {
+    return RdCostWeightPrediction::xGetSADw( rcDtParam );
+  }
+
+  const Pel* piOrg      = rcDtParam.org.buf;
+  const Pel* piCur      = rcDtParam.cur.buf;
+  int  iRows            = rcDtParam.org.height;
+  int  iSubShift        = rcDtParam.subShift;
+  int  iSubStep         = ( 1 << iSubShift );
+  int  iStrideCur       = rcDtParam.cur.stride * iSubStep;
+  int  iStrideOrg       = rcDtParam.org.stride * iSubStep;
+
+  Distortion uiSum = 0;
+
+  for( ; iRows != 0; iRows-=iSubStep )
+  {
+    uiSum += abs( piOrg[0] - piCur[0] );
+    uiSum += abs( piOrg[1] - piCur[1] );
+    uiSum += abs( piOrg[2] - piCur[2] );
+    uiSum += abs( piOrg[3] - piCur[3] );
+    uiSum += abs( piOrg[4] - piCur[4] );
+    uiSum += abs( piOrg[5] - piCur[5] );
+    uiSum += abs( piOrg[6] - piCur[6] );
+    uiSum += abs( piOrg[7] - piCur[7] );
+    uiSum += abs( piOrg[8] - piCur[8] );
+    uiSum += abs( piOrg[9] - piCur[9] );
+    uiSum += abs( piOrg[10] - piCur[10] );
+    uiSum += abs( piOrg[11] - piCur[11] );
+    uiSum += abs( piOrg[12] - piCur[12] );
+    uiSum += abs( piOrg[13] - piCur[13] );
+    uiSum += abs( piOrg[14] - piCur[14] );
+    uiSum += abs( piOrg[15] - piCur[15] );
+    uiSum += abs( piOrg[16] - piCur[16] );
+    uiSum += abs( piOrg[17] - piCur[17] );
+    uiSum += abs( piOrg[18] - piCur[18] );
+    uiSum += abs( piOrg[19] - piCur[19] );
+    uiSum += abs( piOrg[20] - piCur[20] );
+    uiSum += abs( piOrg[21] - piCur[21] );
+    uiSum += abs( piOrg[22] - piCur[22] );
+    uiSum += abs( piOrg[23] - piCur[23] );
+
+    piOrg += iStrideOrg;
+    piCur += iStrideCur;
+  }
+
+  uiSum <<= iSubShift;
+  return (uiSum >> DISTORTION_PRECISION_ADJUSTMENT(rcDtParam.bitDepth));
+}
+
+Distortion RdCost::xAffineGetSAD64( const DistParam &rcDtParam )
+{
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xAffineGetSAD64" << std::endl;
+#endif
+
+  if ( rcDtParam.applyWeight )
+  {
+    return RdCostWeightPrediction::xGetSADw( rcDtParam );
+  }
+
+  const Pel* piOrg      = rcDtParam.org.buf;
+  const Pel* piCur      = rcDtParam.cur.buf;
+  int  iRows            = rcDtParam.org.height;
+  int  iSubShift        = rcDtParam.subShift;
+  int  iSubStep         = ( 1 << iSubShift );
+  int  iStrideCur       = rcDtParam.cur.stride * iSubStep;
+  int  iStrideOrg       = rcDtParam.org.stride * iSubStep;
+
+  Distortion uiSum = 0;
+
+  for( ; iRows != 0; iRows-=iSubStep )
+  {
+    uiSum += abs( piOrg[0] - piCur[0] );
+    uiSum += abs( piOrg[1] - piCur[1] );
+    uiSum += abs( piOrg[2] - piCur[2] );
+    uiSum += abs( piOrg[3] - piCur[3] );
+    uiSum += abs( piOrg[4] - piCur[4] );
+    uiSum += abs( piOrg[5] - piCur[5] );
+    uiSum += abs( piOrg[6] - piCur[6] );
+    uiSum += abs( piOrg[7] - piCur[7] );
+    uiSum += abs( piOrg[8] - piCur[8] );
+    uiSum += abs( piOrg[9] - piCur[9] );
+    uiSum += abs( piOrg[10] - piCur[10] );
+    uiSum += abs( piOrg[11] - piCur[11] );
+    uiSum += abs( piOrg[12] - piCur[12] );
+    uiSum += abs( piOrg[13] - piCur[13] );
+    uiSum += abs( piOrg[14] - piCur[14] );
+    uiSum += abs( piOrg[15] - piCur[15] );
+    uiSum += abs( piOrg[16] - piCur[16] );
+    uiSum += abs( piOrg[17] - piCur[17] );
+    uiSum += abs( piOrg[18] - piCur[18] );
+    uiSum += abs( piOrg[19] - piCur[19] );
+    uiSum += abs( piOrg[20] - piCur[20] );
+    uiSum += abs( piOrg[21] - piCur[21] );
+    uiSum += abs( piOrg[22] - piCur[22] );
+    uiSum += abs( piOrg[23] - piCur[23] );
+    uiSum += abs( piOrg[24] - piCur[24] );
+    uiSum += abs( piOrg[25] - piCur[25] );
+    uiSum += abs( piOrg[26] - piCur[26] );
+    uiSum += abs( piOrg[27] - piCur[27] );
+    uiSum += abs( piOrg[28] - piCur[28] );
+    uiSum += abs( piOrg[29] - piCur[29] );
+    uiSum += abs( piOrg[30] - piCur[30] );
+    uiSum += abs( piOrg[31] - piCur[31] );
+    uiSum += abs( piOrg[32] - piCur[32] );
+    uiSum += abs( piOrg[33] - piCur[33] );
+    uiSum += abs( piOrg[34] - piCur[34] );
+    uiSum += abs( piOrg[35] - piCur[35] );
+    uiSum += abs( piOrg[36] - piCur[36] );
+    uiSum += abs( piOrg[37] - piCur[37] );
+    uiSum += abs( piOrg[38] - piCur[38] );
+    uiSum += abs( piOrg[39] - piCur[39] );
+    uiSum += abs( piOrg[40] - piCur[40] );
+    uiSum += abs( piOrg[41] - piCur[41] );
+    uiSum += abs( piOrg[42] - piCur[42] );
+    uiSum += abs( piOrg[43] - piCur[43] );
+    uiSum += abs( piOrg[44] - piCur[44] );
+    uiSum += abs( piOrg[45] - piCur[45] );
+    uiSum += abs( piOrg[46] - piCur[46] );
+    uiSum += abs( piOrg[47] - piCur[47] );
+    uiSum += abs( piOrg[48] - piCur[48] );
+    uiSum += abs( piOrg[49] - piCur[49] );
+    uiSum += abs( piOrg[50] - piCur[50] );
+    uiSum += abs( piOrg[51] - piCur[51] );
+    uiSum += abs( piOrg[52] - piCur[52] );
+    uiSum += abs( piOrg[53] - piCur[53] );
+    uiSum += abs( piOrg[54] - piCur[54] );
+    uiSum += abs( piOrg[55] - piCur[55] );
+    uiSum += abs( piOrg[56] - piCur[56] );
+    uiSum += abs( piOrg[57] - piCur[57] );
+    uiSum += abs( piOrg[58] - piCur[58] );
+    uiSum += abs( piOrg[59] - piCur[59] );
+    uiSum += abs( piOrg[60] - piCur[60] );
+    uiSum += abs( piOrg[61] - piCur[61] );
+    uiSum += abs( piOrg[62] - piCur[62] );
+    uiSum += abs( piOrg[63] - piCur[63] );
+
+    piOrg += iStrideOrg;
+    piCur += iStrideCur;
+  }
+
+  uiSum <<= iSubShift;
+  return (uiSum >> DISTORTION_PRECISION_ADJUSTMENT(rcDtParam.bitDepth));
+}
+
+Distortion RdCost::xAffineGetSAD48( const DistParam &rcDtParam )
+{
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xAffineGetSAD48" << std::endl;
+#endif
+
+  if ( rcDtParam.applyWeight )
+  {
+    return RdCostWeightPrediction::xGetSADw( rcDtParam );
+  }
+
+  const Pel* piOrg      = rcDtParam.org.buf;
+  const Pel* piCur      = rcDtParam.cur.buf;
+  int  iRows            = rcDtParam.org.height;
+  int  iSubShift        = rcDtParam.subShift;
+  int  iSubStep         = ( 1 << iSubShift );
+  int  iStrideCur       = rcDtParam.cur.stride * iSubStep;
+  int  iStrideOrg       = rcDtParam.org.stride * iSubStep;
+
+  Distortion uiSum = 0;
+
+  for( ; iRows != 0; iRows-=iSubStep )
+  {
+    uiSum += abs( piOrg[0] - piCur[0] );
+    uiSum += abs( piOrg[1] - piCur[1] );
+    uiSum += abs( piOrg[2] - piCur[2] );
+    uiSum += abs( piOrg[3] - piCur[3] );
+    uiSum += abs( piOrg[4] - piCur[4] );
+    uiSum += abs( piOrg[5] - piCur[5] );
+    uiSum += abs( piOrg[6] - piCur[6] );
+    uiSum += abs( piOrg[7] - piCur[7] );
+    uiSum += abs( piOrg[8] - piCur[8] );
+    uiSum += abs( piOrg[9] - piCur[9] );
+    uiSum += abs( piOrg[10] - piCur[10] );
+    uiSum += abs( piOrg[11] - piCur[11] );
+    uiSum += abs( piOrg[12] - piCur[12] );
+    uiSum += abs( piOrg[13] - piCur[13] );
+    uiSum += abs( piOrg[14] - piCur[14] );
+    uiSum += abs( piOrg[15] - piCur[15] );
+    uiSum += abs( piOrg[16] - piCur[16] );
+    uiSum += abs( piOrg[17] - piCur[17] );
+    uiSum += abs( piOrg[18] - piCur[18] );
+    uiSum += abs( piOrg[19] - piCur[19] );
+    uiSum += abs( piOrg[20] - piCur[20] );
+    uiSum += abs( piOrg[21] - piCur[21] );
+    uiSum += abs( piOrg[22] - piCur[22] );
+    uiSum += abs( piOrg[23] - piCur[23] );
+    uiSum += abs( piOrg[24] - piCur[24] );
+    uiSum += abs( piOrg[25] - piCur[25] );
+    uiSum += abs( piOrg[26] - piCur[26] );
+    uiSum += abs( piOrg[27] - piCur[27] );
+    uiSum += abs( piOrg[28] - piCur[28] );
+    uiSum += abs( piOrg[29] - piCur[29] );
+    uiSum += abs( piOrg[30] - piCur[30] );
+    uiSum += abs( piOrg[31] - piCur[31] );
+    uiSum += abs( piOrg[32] - piCur[32] );
+    uiSum += abs( piOrg[33] - piCur[33] );
+    uiSum += abs( piOrg[34] - piCur[34] );
+    uiSum += abs( piOrg[35] - piCur[35] );
+    uiSum += abs( piOrg[36] - piCur[36] );
+    uiSum += abs( piOrg[37] - piCur[37] );
+    uiSum += abs( piOrg[38] - piCur[38] );
+    uiSum += abs( piOrg[39] - piCur[39] );
+    uiSum += abs( piOrg[40] - piCur[40] );
+    uiSum += abs( piOrg[41] - piCur[41] );
+    uiSum += abs( piOrg[42] - piCur[42] );
+    uiSum += abs( piOrg[43] - piCur[43] );
+    uiSum += abs( piOrg[44] - piCur[44] );
+    uiSum += abs( piOrg[45] - piCur[45] );
+    uiSum += abs( piOrg[46] - piCur[46] );
+    uiSum += abs( piOrg[47] - piCur[47] );
+
+    piOrg += iStrideOrg;
+    piCur += iStrideCur;
+  }
+
+  uiSum <<= iSubShift;
+  return (uiSum >> DISTORTION_PRECISION_ADJUSTMENT(rcDtParam.bitDepth));
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+// HADAMARD with step (used in fractional search)
+// --------------------------------------------------------------------------------------------------------------------
+
+Distortion RdCost::xAffineCalcHADs2x2( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur, int iStep )
+{
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xAffineCalcHADs2x2" << std::endl;
+#endif
+
+  Distortion satd = 0;
+  TCoeff diff[4], m[4];
+  CHECK( iStep != 1, "Invalid step" );
+  diff[0] = piOrg[0             ] - piCur[0];
+  diff[1] = piOrg[1             ] - piCur[1];
+  diff[2] = piOrg[iStrideOrg    ] - piCur[0 + iStrideCur];
+  diff[3] = piOrg[iStrideOrg + 1] - piCur[1 + iStrideCur];
+  m[0] = diff[0] + diff[2];
+  m[1] = diff[1] + diff[3];
+  m[2] = diff[0] - diff[2];
+  m[3] = diff[1] - diff[3];
+
+  satd += abs(m[0] + m[1]);
+  satd += abs(m[0] - m[1]);
+  satd += abs(m[2] + m[3]);
+  satd += abs(m[2] - m[3]);
+
+  return satd;
+}
+
+Distortion RdCost::xAffineCalcHADs4x4( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur, int iStep )
+{
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xAffineCalcHADs4x4" << std::endl;
+#endif
+
+  int k;
+  Distortion satd = 0;
+  TCoeff diff[16], m[16], d[16];
+
+  CHECK( iStep != 1, "Invalid step" );
+  for( k = 0; k < 16; k+=4 )
+  {
+    diff[k+0] = piOrg[0] - piCur[0];
+    diff[k+1] = piOrg[1] - piCur[1];
+    diff[k+2] = piOrg[2] - piCur[2];
+    diff[k+3] = piOrg[3] - piCur[3];
+
+    piCur += iStrideCur;
+    piOrg += iStrideOrg;
+  }
+
+  /*===== hadamard transform =====*/
+  m[ 0] = diff[ 0] + diff[12];
+  m[ 1] = diff[ 1] + diff[13];
+  m[ 2] = diff[ 2] + diff[14];
+  m[ 3] = diff[ 3] + diff[15];
+  m[ 4] = diff[ 4] + diff[ 8];
+  m[ 5] = diff[ 5] + diff[ 9];
+  m[ 6] = diff[ 6] + diff[10];
+  m[ 7] = diff[ 7] + diff[11];
+  m[ 8] = diff[ 4] - diff[ 8];
+  m[ 9] = diff[ 5] - diff[ 9];
+  m[10] = diff[ 6] - diff[10];
+  m[11] = diff[ 7] - diff[11];
+  m[12] = diff[ 0] - diff[12];
+  m[13] = diff[ 1] - diff[13];
+  m[14] = diff[ 2] - diff[14];
+  m[15] = diff[ 3] - diff[15];
+
+  d[ 0] = m[ 0] + m[ 4];
+  d[ 1] = m[ 1] + m[ 5];
+  d[ 2] = m[ 2] + m[ 6];
+  d[ 3] = m[ 3] + m[ 7];
+  d[ 4] = m[ 8] + m[12];
+  d[ 5] = m[ 9] + m[13];
+  d[ 6] = m[10] + m[14];
+  d[ 7] = m[11] + m[15];
+  d[ 8] = m[ 0] - m[ 4];
+  d[ 9] = m[ 1] - m[ 5];
+  d[10] = m[ 2] - m[ 6];
+  d[11] = m[ 3] - m[ 7];
+  d[12] = m[12] - m[ 8];
+  d[13] = m[13] - m[ 9];
+  d[14] = m[14] - m[10];
+  d[15] = m[15] - m[11];
+
+  m[ 0] = d[ 0] + d[ 3];
+  m[ 1] = d[ 1] + d[ 2];
+  m[ 2] = d[ 1] - d[ 2];
+  m[ 3] = d[ 0] - d[ 3];
+  m[ 4] = d[ 4] + d[ 7];
+  m[ 5] = d[ 5] + d[ 6];
+  m[ 6] = d[ 5] - d[ 6];
+  m[ 7] = d[ 4] - d[ 7];
+  m[ 8] = d[ 8] + d[11];
+  m[ 9] = d[ 9] + d[10];
+  m[10] = d[ 9] - d[10];
+  m[11] = d[ 8] - d[11];
+  m[12] = d[12] + d[15];
+  m[13] = d[13] + d[14];
+  m[14] = d[13] - d[14];
+  m[15] = d[12] - d[15];
+
+  d[ 0] = m[ 0] + m[ 1];
+  d[ 1] = m[ 0] - m[ 1];
+  d[ 2] = m[ 2] + m[ 3];
+  d[ 3] = m[ 3] - m[ 2];
+  d[ 4] = m[ 4] + m[ 5];
+  d[ 5] = m[ 4] - m[ 5];
+  d[ 6] = m[ 6] + m[ 7];
+  d[ 7] = m[ 7] - m[ 6];
+  d[ 8] = m[ 8] + m[ 9];
+  d[ 9] = m[ 8] - m[ 9];
+  d[10] = m[10] + m[11];
+  d[11] = m[11] - m[10];
+  d[12] = m[12] + m[13];
+  d[13] = m[12] - m[13];
+  d[14] = m[14] + m[15];
+  d[15] = m[15] - m[14];
+
+  for (k=0; k<16; ++k)
+  {
+    satd += abs(d[k]);
+  }
+  satd = ((satd+1)>>1);
+
+  return satd;
+}
+
+Distortion RdCost::xAffineCalcHADs8x8( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur, int iStep )
+{
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xAffineCalcHADs8x8" << std::endl;
+#endif
+
+  int k, i, j, jj;
+  Distortion sad = 0;
+  TCoeff diff[64], m1[8][8], m2[8][8], m3[8][8];
+  CHECK( iStep != 1, "Invalid step" );
+  for( k = 0; k < 64; k += 8 )
+  {
+    diff[k+0] = piOrg[0] - piCur[0];
+    diff[k+1] = piOrg[1] - piCur[1];
+    diff[k+2] = piOrg[2] - piCur[2];
+    diff[k+3] = piOrg[3] - piCur[3];
+    diff[k+4] = piOrg[4] - piCur[4];
+    diff[k+5] = piOrg[5] - piCur[5];
+    diff[k+6] = piOrg[6] - piCur[6];
+    diff[k+7] = piOrg[7] - piCur[7];
+
+    piCur += iStrideCur;
+    piOrg += iStrideOrg;
+  }
+
+  //horizontal
+  for (j=0; j < 8; j++)
+  {
+    jj = j << 3;
+    m2[j][0] = diff[jj  ] + diff[jj+4];
+    m2[j][1] = diff[jj+1] + diff[jj+5];
+    m2[j][2] = diff[jj+2] + diff[jj+6];
+    m2[j][3] = diff[jj+3] + diff[jj+7];
+    m2[j][4] = diff[jj  ] - diff[jj+4];
+    m2[j][5] = diff[jj+1] - diff[jj+5];
+    m2[j][6] = diff[jj+2] - diff[jj+6];
+    m2[j][7] = diff[jj+3] - diff[jj+7];
+
+    m1[j][0] = m2[j][0] + m2[j][2];
+    m1[j][1] = m2[j][1] + m2[j][3];
+    m1[j][2] = m2[j][0] - m2[j][2];
+    m1[j][3] = m2[j][1] - m2[j][3];
+    m1[j][4] = m2[j][4] + m2[j][6];
+    m1[j][5] = m2[j][5] + m2[j][7];
+    m1[j][6] = m2[j][4] - m2[j][6];
+    m1[j][7] = m2[j][5] - m2[j][7];
+
+    m2[j][0] = m1[j][0] + m1[j][1];
+    m2[j][1] = m1[j][0] - m1[j][1];
+    m2[j][2] = m1[j][2] + m1[j][3];
+    m2[j][3] = m1[j][2] - m1[j][3];
+    m2[j][4] = m1[j][4] + m1[j][5];
+    m2[j][5] = m1[j][4] - m1[j][5];
+    m2[j][6] = m1[j][6] + m1[j][7];
+    m2[j][7] = m1[j][6] - m1[j][7];
+  }
+
+  //vertical
+  for (i=0; i < 8; i++)
+  {
+    m3[0][i] = m2[0][i] + m2[4][i];
+    m3[1][i] = m2[1][i] + m2[5][i];
+    m3[2][i] = m2[2][i] + m2[6][i];
+    m3[3][i] = m2[3][i] + m2[7][i];
+    m3[4][i] = m2[0][i] - m2[4][i];
+    m3[5][i] = m2[1][i] - m2[5][i];
+    m3[6][i] = m2[2][i] - m2[6][i];
+    m3[7][i] = m2[3][i] - m2[7][i];
+
+    m1[0][i] = m3[0][i] + m3[2][i];
+    m1[1][i] = m3[1][i] + m3[3][i];
+    m1[2][i] = m3[0][i] - m3[2][i];
+    m1[3][i] = m3[1][i] - m3[3][i];
+    m1[4][i] = m3[4][i] + m3[6][i];
+    m1[5][i] = m3[5][i] + m3[7][i];
+    m1[6][i] = m3[4][i] - m3[6][i];
+    m1[7][i] = m3[5][i] - m3[7][i];
+
+    m2[0][i] = m1[0][i] + m1[1][i];
+    m2[1][i] = m1[0][i] - m1[1][i];
+    m2[2][i] = m1[2][i] + m1[3][i];
+    m2[3][i] = m1[2][i] - m1[3][i];
+    m2[4][i] = m1[4][i] + m1[5][i];
+    m2[5][i] = m1[4][i] - m1[5][i];
+    m2[6][i] = m1[6][i] + m1[7][i];
+    m2[7][i] = m1[6][i] - m1[7][i];
+  }
+
+  for (i = 0; i < 8; i++)
+  {
+    for (j = 0; j < 8; j++)
+    {
+      sad += abs(m2[i][j]);
+    }
+  }
+
+  sad=((sad+2)>>2);
+
+  return sad;
+}
+
+Distortion RdCost::xAffineCalcHADs16x8( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur )
+{   //need to add SIMD implementation ,JCA
+
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xAffineCalcHADs16x8" << std::endl;
+#endif
+
+  int k, i, j, jj, sad = 0;
+  int diff[128], m1[8][16], m2[8][16];
+  for( k = 0; k < 128; k += 16 )
+  {
+    diff[k + 0] = piOrg[0] - piCur[0];
+    diff[k + 1] = piOrg[1] - piCur[1];
+    diff[k + 2] = piOrg[2] - piCur[2];
+    diff[k + 3] = piOrg[3] - piCur[3];
+    diff[k + 4] = piOrg[4] - piCur[4];
+    diff[k + 5] = piOrg[5] - piCur[5];
+    diff[k + 6] = piOrg[6] - piCur[6];
+    diff[k + 7] = piOrg[7] - piCur[7];
+
+    diff[k + 8] = piOrg[8] - piCur[8];
+    diff[k + 9] = piOrg[9] - piCur[9];
+    diff[k + 10] = piOrg[10] - piCur[10];
+    diff[k + 11] = piOrg[11] - piCur[11];
+    diff[k + 12] = piOrg[12] - piCur[12];
+    diff[k + 13] = piOrg[13] - piCur[13];
+    diff[k + 14] = piOrg[14] - piCur[14];
+    diff[k + 15] = piOrg[15] - piCur[15];
+
+    piCur += iStrideCur;
+    piOrg += iStrideOrg;
+  }
+
+  //horizontal
+  for( j = 0; j < 8; j++ )
+  {
+    jj = j << 4;
+
+    m2[j][0] = diff[jj    ] + diff[jj + 8];
+    m2[j][1] = diff[jj + 1] + diff[jj + 9];
+    m2[j][2] = diff[jj + 2] + diff[jj + 10];
+    m2[j][3] = diff[jj + 3] + diff[jj + 11];
+    m2[j][4] = diff[jj + 4] + diff[jj + 12];
+    m2[j][5] = diff[jj + 5] + diff[jj + 13];
+    m2[j][6] = diff[jj + 6] + diff[jj + 14];
+    m2[j][7] = diff[jj + 7] + diff[jj + 15];
+    m2[j][8] = diff[jj    ] - diff[jj + 8];
+    m2[j][9] = diff[jj + 1] - diff[jj + 9];
+    m2[j][10] = diff[jj + 2] - diff[jj + 10];
+    m2[j][11] = diff[jj + 3] - diff[jj + 11];
+    m2[j][12] = diff[jj + 4] - diff[jj + 12];
+    m2[j][13] = diff[jj + 5] - diff[jj + 13];
+    m2[j][14] = diff[jj + 6] - diff[jj + 14];
+    m2[j][15] = diff[jj + 7] - diff[jj + 15];
+
+    m1[j][0] = m2[j][0] + m2[j][4];
+    m1[j][1] = m2[j][1] + m2[j][5];
+    m1[j][2] = m2[j][2] + m2[j][6];
+    m1[j][3] = m2[j][3] + m2[j][7];
+    m1[j][4] = m2[j][0] - m2[j][4];
+    m1[j][5] = m2[j][1] - m2[j][5];
+    m1[j][6] = m2[j][2] - m2[j][6];
+    m1[j][7] = m2[j][3] - m2[j][7];
+    m1[j][8] = m2[j][8] + m2[j][12];
+    m1[j][9] = m2[j][9] + m2[j][13];
+    m1[j][10] = m2[j][10] + m2[j][14];
+    m1[j][11] = m2[j][11] + m2[j][15];
+    m1[j][12] = m2[j][8] - m2[j][12];
+    m1[j][13] = m2[j][9] - m2[j][13];
+    m1[j][14] = m2[j][10] - m2[j][14];
+    m1[j][15] = m2[j][11] - m2[j][15];
+
+    m2[j][0] = m1[j][0] + m1[j][2];
+    m2[j][1] = m1[j][1] + m1[j][3];
+    m2[j][2] = m1[j][0] - m1[j][2];
+    m2[j][3] = m1[j][1] - m1[j][3];
+    m2[j][4] = m1[j][4] + m1[j][6];
+    m2[j][5] = m1[j][5] + m1[j][7];
+    m2[j][6] = m1[j][4] - m1[j][6];
+    m2[j][7] = m1[j][5] - m1[j][7];
+    m2[j][8] = m1[j][8] + m1[j][10];
+    m2[j][9] = m1[j][9] + m1[j][11];
+    m2[j][10] = m1[j][8] - m1[j][10];
+    m2[j][11] = m1[j][9] - m1[j][11];
+    m2[j][12] = m1[j][12] + m1[j][14];
+    m2[j][13] = m1[j][13] + m1[j][15];
+    m2[j][14] = m1[j][12] - m1[j][14];
+    m2[j][15] = m1[j][13] - m1[j][15];
+
+    m1[j][0] = m2[j][0] + m2[j][1];
+    m1[j][1] = m2[j][0] - m2[j][1];
+    m1[j][2] = m2[j][2] + m2[j][3];
+    m1[j][3] = m2[j][2] - m2[j][3];
+    m1[j][4] = m2[j][4] + m2[j][5];
+    m1[j][5] = m2[j][4] - m2[j][5];
+    m1[j][6] = m2[j][6] + m2[j][7];
+    m1[j][7] = m2[j][6] - m2[j][7];
+    m1[j][8] = m2[j][8] + m2[j][9];
+    m1[j][9] = m2[j][8] - m2[j][9];
+    m1[j][10] = m2[j][10] + m2[j][11];
+    m1[j][11] = m2[j][10] - m2[j][11];
+    m1[j][12] = m2[j][12] + m2[j][13];
+    m1[j][13] = m2[j][12] - m2[j][13];
+    m1[j][14] = m2[j][14] + m2[j][15];
+    m1[j][15] = m2[j][14] - m2[j][15];
+  }
+
+  //vertical
+  for( i = 0; i < 16; i++ )
+  {
+    m2[0][i] = m1[0][i] + m1[4][i];
+    m2[1][i] = m1[1][i] + m1[5][i];
+    m2[2][i] = m1[2][i] + m1[6][i];
+    m2[3][i] = m1[3][i] + m1[7][i];
+    m2[4][i] = m1[0][i] - m1[4][i];
+    m2[5][i] = m1[1][i] - m1[5][i];
+    m2[6][i] = m1[2][i] - m1[6][i];
+    m2[7][i] = m1[3][i] - m1[7][i];
+
+    m1[0][i] = m2[0][i] + m2[2][i];
+    m1[1][i] = m2[1][i] + m2[3][i];
+    m1[2][i] = m2[0][i] - m2[2][i];
+    m1[3][i] = m2[1][i] - m2[3][i];
+    m1[4][i] = m2[4][i] + m2[6][i];
+    m1[5][i] = m2[5][i] + m2[7][i];
+    m1[6][i] = m2[4][i] - m2[6][i];
+    m1[7][i] = m2[5][i] - m2[7][i];
+
+    m2[0][i] = m1[0][i] + m1[1][i];
+    m2[1][i] = m1[0][i] - m1[1][i];
+    m2[2][i] = m1[2][i] + m1[3][i];
+    m2[3][i] = m1[2][i] - m1[3][i];
+    m2[4][i] = m1[4][i] + m1[5][i];
+    m2[5][i] = m1[4][i] - m1[5][i];
+    m2[6][i] = m1[6][i] + m1[7][i];
+    m2[7][i] = m1[6][i] - m1[7][i];
+  }
+
+  for( i = 0; i < 8; i++ )
+  {
+    for( j = 0; j < 16; j++ )
+    {
+      sad += abs( m2[i][j] );
+    }
+  }
+
+  sad = ( int ) ( sad / sqrt( 16.0 * 8 ) * 2 );
+
+  return sad;
+}
+
+Distortion RdCost::xAffineCalcHADs8x16( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur )
+{
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xAffineCalcHADs8x16" << std::endl;
+#endif
+
+  int k, i, j, jj, sad = 0;
+  int diff[128], m1[16][8], m2[16][8];
+  for( k = 0; k < 128; k += 8 )
+  {
+    diff[k + 0] = piOrg[0] - piCur[0];
+    diff[k + 1] = piOrg[1] - piCur[1];
+    diff[k + 2] = piOrg[2] - piCur[2];
+    diff[k + 3] = piOrg[3] - piCur[3];
+    diff[k + 4] = piOrg[4] - piCur[4];
+    diff[k + 5] = piOrg[5] - piCur[5];
+    diff[k + 6] = piOrg[6] - piCur[6];
+    diff[k + 7] = piOrg[7] - piCur[7];
+
+    piCur += iStrideCur;
+    piOrg += iStrideOrg;
+  }
+
+  //horizontal
+  for( j = 0; j < 16; j++ )
+  {
+    jj = j << 3;
+
+    m2[j][0] = diff[jj] + diff[jj + 4];
+    m2[j][1] = diff[jj + 1] + diff[jj + 5];
+    m2[j][2] = diff[jj + 2] + diff[jj + 6];
+    m2[j][3] = diff[jj + 3] + diff[jj + 7];
+    m2[j][4] = diff[jj] - diff[jj + 4];
+    m2[j][5] = diff[jj + 1] - diff[jj + 5];
+    m2[j][6] = diff[jj + 2] - diff[jj + 6];
+    m2[j][7] = diff[jj + 3] - diff[jj + 7];
+
+    m1[j][0] = m2[j][0] + m2[j][2];
+    m1[j][1] = m2[j][1] + m2[j][3];
+    m1[j][2] = m2[j][0] - m2[j][2];
+    m1[j][3] = m2[j][1] - m2[j][3];
+    m1[j][4] = m2[j][4] + m2[j][6];
+    m1[j][5] = m2[j][5] + m2[j][7];
+    m1[j][6] = m2[j][4] - m2[j][6];
+    m1[j][7] = m2[j][5] - m2[j][7];
+
+    m2[j][0] = m1[j][0] + m1[j][1];
+    m2[j][1] = m1[j][0] - m1[j][1];
+    m2[j][2] = m1[j][2] + m1[j][3];
+    m2[j][3] = m1[j][2] - m1[j][3];
+    m2[j][4] = m1[j][4] + m1[j][5];
+    m2[j][5] = m1[j][4] - m1[j][5];
+    m2[j][6] = m1[j][6] + m1[j][7];
+    m2[j][7] = m1[j][6] - m1[j][7];
+  }
+
+  //vertical
+  for( i = 0; i < 8; i++ )
+  {
+    m1[0][i] = m2[0][i] + m2[8][i];
+    m1[1][i] = m2[1][i] + m2[9][i];
+    m1[2][i] = m2[2][i] + m2[10][i];
+    m1[3][i] = m2[3][i] + m2[11][i];
+    m1[4][i] = m2[4][i] + m2[12][i];
+    m1[5][i] = m2[5][i] + m2[13][i];
+    m1[6][i] = m2[6][i] + m2[14][i];
+    m1[7][i] = m2[7][i] + m2[15][i];
+    m1[8][i] = m2[0][i] - m2[8][i];
+    m1[9][i] = m2[1][i] - m2[9][i];
+    m1[10][i] = m2[2][i] - m2[10][i];
+    m1[11][i] = m2[3][i] - m2[11][i];
+    m1[12][i] = m2[4][i] - m2[12][i];
+    m1[13][i] = m2[5][i] - m2[13][i];
+    m1[14][i] = m2[6][i] - m2[14][i];
+    m1[15][i] = m2[7][i] - m2[15][i];
+
+    m2[0][i] = m1[0][i] + m1[4][i];
+    m2[1][i] = m1[1][i] + m1[5][i];
+    m2[2][i] = m1[2][i] + m1[6][i];
+    m2[3][i] = m1[3][i] + m1[7][i];
+    m2[4][i] = m1[0][i] - m1[4][i];
+    m2[5][i] = m1[1][i] - m1[5][i];
+    m2[6][i] = m1[2][i] - m1[6][i];
+    m2[7][i] = m1[3][i] - m1[7][i];
+    m2[8][i] = m1[8][i] + m1[12][i];
+    m2[9][i] = m1[9][i] + m1[13][i];
+    m2[10][i] = m1[10][i] + m1[14][i];
+    m2[11][i] = m1[11][i] + m1[15][i];
+    m2[12][i] = m1[8][i] - m1[12][i];
+    m2[13][i] = m1[9][i] - m1[13][i];
+    m2[14][i] = m1[10][i] - m1[14][i];
+    m2[15][i] = m1[11][i] - m1[15][i];
+
+    m1[0][i] = m2[0][i] + m2[2][i];
+    m1[1][i] = m2[1][i] + m2[3][i];
+    m1[2][i] = m2[0][i] - m2[2][i];
+    m1[3][i] = m2[1][i] - m2[3][i];
+    m1[4][i] = m2[4][i] + m2[6][i];
+    m1[5][i] = m2[5][i] + m2[7][i];
+    m1[6][i] = m2[4][i] - m2[6][i];
+    m1[7][i] = m2[5][i] - m2[7][i];
+    m1[8][i] = m2[8][i] + m2[10][i];
+    m1[9][i] = m2[9][i] + m2[11][i];
+    m1[10][i] = m2[8][i] - m2[10][i];
+    m1[11][i] = m2[9][i] - m2[11][i];
+    m1[12][i] = m2[12][i] + m2[14][i];
+    m1[13][i] = m2[13][i] + m2[15][i];
+    m1[14][i] = m2[12][i] - m2[14][i];
+    m1[15][i] = m2[13][i] - m2[15][i];
+
+    m2[0][i] = m1[0][i] + m1[1][i];
+    m2[1][i] = m1[0][i] - m1[1][i];
+    m2[2][i] = m1[2][i] + m1[3][i];
+    m2[3][i] = m1[2][i] - m1[3][i];
+    m2[4][i] = m1[4][i] + m1[5][i];
+    m2[5][i] = m1[4][i] - m1[5][i];
+    m2[6][i] = m1[6][i] + m1[7][i];
+    m2[7][i] = m1[6][i] - m1[7][i];
+    m2[8][i] = m1[8][i] + m1[9][i];
+    m2[9][i] = m1[8][i] - m1[9][i];
+    m2[10][i] = m1[10][i] + m1[11][i];
+    m2[11][i] = m1[10][i] - m1[11][i];
+    m2[12][i] = m1[12][i] + m1[13][i];
+    m2[13][i] = m1[12][i] - m1[13][i];
+    m2[14][i] = m1[14][i] + m1[15][i];
+    m2[15][i] = m1[14][i] - m1[15][i];
+  }
+
+  for( i = 0; i < 16; i++ )
+  {
+    for( j = 0; j < 8; j++ )
+    {
+      sad += abs( m2[i][j] );
+    }
+  }
+
+  sad = ( int ) ( sad / sqrt( 16.0 * 8 ) * 2 );
+
+  return sad;
+}
+
+Distortion RdCost::xAffineCalcHADs4x8( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur )
+{
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xAffineCalcHADs4x8" << std::endl;
+#endif
+
+  int k, i, j, jj, sad = 0;
+  int diff[32], m1[8][4], m2[8][4];
+  for( k = 0; k < 32; k += 4 )
+  {
+    diff[k + 0] = piOrg[0] - piCur[0];
+    diff[k + 1] = piOrg[1] - piCur[1];
+    diff[k + 2] = piOrg[2] - piCur[2];
+    diff[k + 3] = piOrg[3] - piCur[3];
+
+    piCur += iStrideCur;
+    piOrg += iStrideOrg;
+  }
+
+  //horizontal
+  for( j = 0; j < 8; j++ )
+  {
+    jj = j << 2;
+    m2[j][0] = diff[jj] + diff[jj + 2];
+    m2[j][1] = diff[jj + 1] + diff[jj + 3];
+    m2[j][2] = diff[jj] - diff[jj + 2];
+    m2[j][3] = diff[jj + 1] - diff[jj + 3];
+
+    m1[j][0] = m2[j][0] + m2[j][1];
+    m1[j][1] = m2[j][0] - m2[j][1];
+    m1[j][2] = m2[j][2] + m2[j][3];
+    m1[j][3] = m2[j][2] - m2[j][3];
+  }
+
+  //vertical
+  for( i = 0; i < 4; i++ )
+  {
+    m2[0][i] = m1[0][i] + m1[4][i];
+    m2[1][i] = m1[1][i] + m1[5][i];
+    m2[2][i] = m1[2][i] + m1[6][i];
+    m2[3][i] = m1[3][i] + m1[7][i];
+    m2[4][i] = m1[0][i] - m1[4][i];
+    m2[5][i] = m1[1][i] - m1[5][i];
+    m2[6][i] = m1[2][i] - m1[6][i];
+    m2[7][i] = m1[3][i] - m1[7][i];
+
+    m1[0][i] = m2[0][i] + m2[2][i];
+    m1[1][i] = m2[1][i] + m2[3][i];
+    m1[2][i] = m2[0][i] - m2[2][i];
+    m1[3][i] = m2[1][i] - m2[3][i];
+    m1[4][i] = m2[4][i] + m2[6][i];
+    m1[5][i] = m2[5][i] + m2[7][i];
+    m1[6][i] = m2[4][i] - m2[6][i];
+    m1[7][i] = m2[5][i] - m2[7][i];
+
+    m2[0][i] = m1[0][i] + m1[1][i];
+    m2[1][i] = m1[0][i] - m1[1][i];
+    m2[2][i] = m1[2][i] + m1[3][i];
+    m2[3][i] = m1[2][i] - m1[3][i];
+    m2[4][i] = m1[4][i] + m1[5][i];
+    m2[5][i] = m1[4][i] - m1[5][i];
+    m2[6][i] = m1[6][i] + m1[7][i];
+    m2[7][i] = m1[6][i] - m1[7][i];
+  }
+
+  for( i = 0; i < 8; i++ )
+  {
+    for( j = 0; j < 4; j++ )
+    {
+      sad += abs( m2[i][j] );
+    }
+  }
+
+  sad = ( int ) ( sad / sqrt( 4.0 * 8 ) * 2 );
+
+  return sad;
+}
+
+Distortion RdCost::xAffineCalcHADs8x4( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur )
+{
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xAffineCalcHADs8x4" << std::endl;
+#endif
+
+  int k, i, j, jj, sad = 0;
+  int diff[32], m1[4][8], m2[4][8];
+  for( k = 0; k < 32; k += 8 )
+  {
+    diff[k + 0] = piOrg[0] - piCur[0];
+    diff[k + 1] = piOrg[1] - piCur[1];
+    diff[k + 2] = piOrg[2] - piCur[2];
+    diff[k + 3] = piOrg[3] - piCur[3];
+    diff[k + 4] = piOrg[4] - piCur[4];
+    diff[k + 5] = piOrg[5] - piCur[5];
+    diff[k + 6] = piOrg[6] - piCur[6];
+    diff[k + 7] = piOrg[7] - piCur[7];
+
+    piCur += iStrideCur;
+    piOrg += iStrideOrg;
+  }
+
+  //horizontal
+  for( j = 0; j < 4; j++ )
+  {
+    jj = j << 3;
+
+    m2[j][0] = diff[jj] + diff[jj + 4];
+    m2[j][1] = diff[jj + 1] + diff[jj + 5];
+    m2[j][2] = diff[jj + 2] + diff[jj + 6];
+    m2[j][3] = diff[jj + 3] + diff[jj + 7];
+    m2[j][4] = diff[jj] - diff[jj + 4];
+    m2[j][5] = diff[jj + 1] - diff[jj + 5];
+    m2[j][6] = diff[jj + 2] - diff[jj + 6];
+    m2[j][7] = diff[jj + 3] - diff[jj + 7];
+
+    m1[j][0] = m2[j][0] + m2[j][2];
+    m1[j][1] = m2[j][1] + m2[j][3];
+    m1[j][2] = m2[j][0] - m2[j][2];
+    m1[j][3] = m2[j][1] - m2[j][3];
+    m1[j][4] = m2[j][4] + m2[j][6];
+    m1[j][5] = m2[j][5] + m2[j][7];
+    m1[j][6] = m2[j][4] - m2[j][6];
+    m1[j][7] = m2[j][5] - m2[j][7];
+
+    m2[j][0] = m1[j][0] + m1[j][1];
+    m2[j][1] = m1[j][0] - m1[j][1];
+    m2[j][2] = m1[j][2] + m1[j][3];
+    m2[j][3] = m1[j][2] - m1[j][3];
+    m2[j][4] = m1[j][4] + m1[j][5];
+    m2[j][5] = m1[j][4] - m1[j][5];
+    m2[j][6] = m1[j][6] + m1[j][7];
+    m2[j][7] = m1[j][6] - m1[j][7];
+  }
+
+  //vertical
+  for( i = 0; i < 8; i++ )
+  {
+    m1[0][i] = m2[0][i] + m2[2][i];
+    m1[1][i] = m2[1][i] + m2[3][i];
+    m1[2][i] = m2[0][i] - m2[2][i];
+    m1[3][i] = m2[1][i] - m2[3][i];
+
+    m2[0][i] = m1[0][i] + m1[1][i];
+    m2[1][i] = m1[0][i] - m1[1][i];
+    m2[2][i] = m1[2][i] + m1[3][i];
+    m2[3][i] = m1[2][i] - m1[3][i];
+  }
+
+  for( i = 0; i < 4; i++ )
+  {
+    for( j = 0; j < 8; j++ )
+    {
+      sad += abs( m2[i][j] );
+    }
+  }
+
+  sad = ( int ) ( sad / sqrt( 4.0 * 8 ) * 2 );
+
+  return sad;
+}
+
+Distortion RdCost::xAffineGetHADs( const DistParam &rcDtParam )
+{
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xAffineGetHADs" << std::endl;
+#endif
+
+  if( rcDtParam.applyWeight )
+  {
+    return RdCostWeightPrediction::xGetHADsw( rcDtParam );
+  }
+  const Pel* piOrg = rcDtParam.org.buf;
+  const Pel* piCur = rcDtParam.cur.buf;
+  const int  iRows = rcDtParam.org.height;
+  const int  iCols = rcDtParam.org.width;
+  const int  iStrideCur = rcDtParam.cur.stride;
+  const int  iStrideOrg = rcDtParam.org.stride;
+  const int  iStep = rcDtParam.step;
+
+  int  x = 0, y = 0;
+
+  Distortion uiSum = 0;
+
+  if( iCols > iRows && ( iRows & 7 ) == 0 && ( iCols & 15 ) == 0 )
+  {
+    for( y = 0; y < iRows; y += 8 )
+    {
+      for( x = 0; x < iCols; x += 16 )
+      {
+        uiSum += xAffineCalcHADs16x8( &piOrg[x], &piCur[x], iStrideOrg, iStrideCur );
+      }
+      piOrg += iStrideOrg * 8;
+      piCur += iStrideCur * 8;
+    }
+  }
+  else if( iCols < iRows && ( iCols & 7 ) == 0 && ( iRows & 15 ) == 0 )
+  {
+    for( y = 0; y < iRows; y += 16 )
+    {
+      for( x = 0; x < iCols; x += 8 )
+      {
+        uiSum += xAffineCalcHADs8x16( &piOrg[x], &piCur[x], iStrideOrg, iStrideCur );
+      }
+      piOrg += iStrideOrg * 16;
+      piCur += iStrideCur * 16;
+    }
+  }
+  else if( iCols > iRows && ( iRows & 3 ) == 0 && ( iCols & 7 ) == 0 )
+  {
+    for( y = 0; y < iRows; y += 4 )
+    {
+      for( x = 0; x < iCols; x += 8 )
+      {
+        uiSum += xAffineCalcHADs8x4( &piOrg[x], &piCur[x], iStrideOrg, iStrideCur );
+      }
+      piOrg += iStrideOrg * 4;
+      piCur += iStrideCur * 4;
+    }
+  }
+  else if( iCols < iRows && ( iCols & 3 ) == 0 && ( iRows & 7 ) == 0 )
+  {
+    for( y = 0; y < iRows; y += 8 )
+    {
+      for( x = 0; x < iCols; x += 4 )
+      {
+        uiSum += xAffineCalcHADs4x8( &piOrg[x], &piCur[x], iStrideOrg, iStrideCur );
+      }
+      piOrg += iStrideOrg * 8;
+      piCur += iStrideCur * 8;
+    }
+  }
+  else if( ( iRows % 8 == 0 ) && ( iCols % 8 == 0 ) )
+  {
+    int  iOffsetOrg = iStrideOrg << 3;
+    int  iOffsetCur = iStrideCur << 3;
+    for( y = 0; y < iRows; y += 8 )
+    {
+      for( x = 0; x < iCols; x += 8 )
+      {
+        uiSum += xAffineCalcHADs8x8( &piOrg[x], &piCur[x*iStep], iStrideOrg, iStrideCur, iStep );
+      }
+      piOrg += iOffsetOrg;
+      piCur += iOffsetCur;
+    }
+  }
+  else if( ( iRows % 4 == 0 ) && ( iCols % 4 == 0 ) )
+  {
+    int  iOffsetOrg = iStrideOrg << 2;
+    int  iOffsetCur = iStrideCur << 2;
+
+    for( y = 0; y < iRows; y += 4 )
+    {
+      for( x = 0; x < iCols; x += 4 )
+      {
+        uiSum += xAffineCalcHADs4x4( &piOrg[x], &piCur[x*iStep], iStrideOrg, iStrideCur, iStep );
+      }
+      piOrg += iOffsetOrg;
+      piCur += iOffsetCur;
+    }
+  }
+  else if( ( iRows % 2 == 0 ) && ( iCols % 2 == 0 ) )
+  {
+    int  iOffsetOrg = iStrideOrg << 1;
+    int  iOffsetCur = iStrideCur << 1;
+    for( y = 0; y < iRows; y += 2 )
+    {
+      for( x = 0; x < iCols; x += 2 )
+      {
+        uiSum += xAffineCalcHADs2x2( &piOrg[x], &piCur[x*iStep], iStrideOrg, iStrideCur, iStep );
+      }
+      piOrg += iOffsetOrg;
+      piCur += iOffsetCur;
+    }
+  }
+  else
+  {
+    THROW( "Invalid size" );
+  }
+
+  return (uiSum >> DISTORTION_PRECISION_ADJUSTMENT(rcDtParam.bitDepth));
+}
+
 #endif
 
 #if WCG_EXT
@@ -5932,7 +7356,7 @@ Distortion RdCost::getWeightedMSE(int compIdx, const Pel org, const Pel cur, con
 Distortion RdCost::xGetSSE_WTD( const DistParam &rcDtParam )
 {
 #if DBG_DIST_FUNCS
-  fpDistDebug << "getWeightedMSE" << std::endl;
+  fpDistDebug << "xGetSSE_WTD" << std::endl;
 #endif
 
   if( rcDtParam.applyWeight )

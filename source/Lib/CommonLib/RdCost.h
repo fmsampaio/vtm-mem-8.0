@@ -452,11 +452,33 @@ private:
   static Distortion xIntraCalcHADs2x2      ( const Pel *piOrg, const Pel *piCurr, int iStrideOrg, int iStrideCur, int iStep );
   static Distortion xIntraCalcHADs4x4      ( const Pel *piOrg, const Pel *piCurr, int iStrideOrg, int iStrideCur, int iStep );
   static Distortion xIntraCalcHADs8x8      ( const Pel *piOrg, const Pel *piCurr, int iStrideOrg, int iStrideCur, int iStep );
-
   static Distortion xIntraCalcHADs16x8     ( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur );
   static Distortion xIntraCalcHADs8x16     ( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur );
   static Distortion xIntraCalcHADs4x8      ( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur );
   static Distortion xIntraCalcHADs8x4      ( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur );
+
+  static Distortion xAffineGetSAD           ( const DistParam& pcDtParam );
+  static Distortion xAffineGetSAD4          ( const DistParam& pcDtParam );
+  static Distortion xAffineGetSAD8          ( const DistParam& pcDtParam );
+  static Distortion xAffineGetSAD16         ( const DistParam& pcDtParam );
+  static Distortion xAffineGetSAD32         ( const DistParam& pcDtParam );
+  static Distortion xAffineGetSAD64         ( const DistParam& pcDtParam );
+  static Distortion xAffineGetSAD16N        ( const DistParam& pcDtParam );
+  static Distortion xAffineGetSAD12         ( const DistParam& pcDtParam );
+  static Distortion xAffineGetSAD24         ( const DistParam& pcDtParam );
+  static Distortion xAffineGetSAD48         ( const DistParam& pcDtParam );
+  static Distortion xAffineGetSAD_full      ( const DistParam& pcDtParam );
+
+  
+  static Distortion xAffineGetHADs          ( const DistParam& pcDtParam );
+  static Distortion xAffineCalcHADs2x2      ( const Pel *piOrg, const Pel *piCurr, int iStrideOrg, int iStrideCur, int iStep );
+  static Distortion xAffineCalcHADs4x4      ( const Pel *piOrg, const Pel *piCurr, int iStrideOrg, int iStrideCur, int iStep );
+  static Distortion xAffineCalcHADs8x8      ( const Pel *piOrg, const Pel *piCurr, int iStrideOrg, int iStrideCur, int iStep );
+  static Distortion xAffineCalcHADs16x8     ( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur );
+  static Distortion xAffineCalcHADs8x16     ( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur );
+  static Distortion xAffineCalcHADs4x8      ( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur );
+  static Distortion xAffineCalcHADs8x4      ( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur );
+  
 #endif
 
 #ifdef TARGET_SIMD_X86

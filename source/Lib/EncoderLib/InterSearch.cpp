@@ -3302,7 +3302,12 @@ Distortion InterSearch::xGetAffineTemplateCost( PredictionUnit& pu, PelUnitBuf& 
   }
 
   // calc distortion
+#if INTRA_INTER_MEM_EVAL_EN
+  enum DFunc distFunc = (pu.cs->slice->getDisableSATDForRD()) ? DF_AFFINE_SAD : DF_AFFINE_HAD;
+#else
   enum DFunc distFunc = (pu.cs->slice->getDisableSATDForRD()) ? DF_SAD : DF_HAD;
+#endif
+
   uiCost  = m_pcRdCost->getDistPart( origBuf.Y(), predBuf.Y(), pu.cs->sps->getBitDepth(CHANNEL_TYPE_LUMA), COMPONENT_Y
     , distFunc
   );
@@ -5479,7 +5484,13 @@ void InterSearch::xAffineMotionEstimation( PredictionUnit& pu,
   double        fWeight       = 1.0;
 
   PelUnitBuf  origBufTmp = m_tmpStorageLCU.getBuf( UnitAreaRelative( *pu.cu, pu ) );
+
+#if INTRA_INTER_MEM_EVAL_EN
+    enum DFunc distFunc = (pu.cs->slice->getDisableSATDForRD()) ? DF_AFFINE_SAD : DF_AFFINE_HAD;
+#else
   enum DFunc distFunc = (pu.cs->slice->getDisableSATDForRD()) ? DF_SAD : DF_HAD;
+#endif
+
   m_iRefListIdx = eRefPicList;
 
   // if Bi, set to ( 2 * Org - ListX )

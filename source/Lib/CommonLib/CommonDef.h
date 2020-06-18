@@ -119,7 +119,7 @@
 
 #define MEM_TRACE_EN 0
 #define INTRA_INTER_MEM_EVAL_EN 1
-#define DBG_DIST_FUNCS 1
+#define DBG_DIST_FUNCS 0
 
 typedef enum
 {

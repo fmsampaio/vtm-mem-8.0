@@ -1804,16 +1804,28 @@ void IntraSearch::PLTSearch(CodingStructure &cs, Partitioner& partitioner, Compo
         PelBuf   tmpRecLuma = m_tmpStorageLCU.getBuf(tmpArea1);
         tmpRecLuma.copyFrom(reco);
         tmpRecLuma.rspSignal(m_pcReshape->getInvLUT());
+#if INTRA_INTER_MEM_EVAL_EN
+        distortion += m_pcRdCost->getDistPart(org, tmpRecLuma, cs.sps->getBitDepth(toChannelType(compID)), compID, DF_INTRA_SSE_WTD, &orgLuma);
+#else
         distortion += m_pcRdCost->getDistPart(org, tmpRecLuma, cs.sps->getBitDepth(toChannelType(compID)), compID, DF_SSE_WTD, &orgLuma);
+#endif
       }
       else
       {
+#if INTRA_INTER_MEM_EVAL_EN
+        distortion += m_pcRdCost->getDistPart(org, reco, cs.sps->getBitDepth(toChannelType(compID)), compID, DF_INTRA_SSE_WTD, &orgLuma);
+#else
         distortion += m_pcRdCost->getDistPart(org, reco, cs.sps->getBitDepth(toChannelType(compID)), compID, DF_SSE_WTD, &orgLuma);
+#endif
       }
     }
     else
 #endif
+#if INTRA_INTER_MEM_EVAL_EN
+      distortion += m_pcRdCost->getDistPart(org, reco, cs.sps->getBitDepth(toChannelType(compID)), compID, DF_INTRA_SSE);
+#else
       distortion += m_pcRdCost->getDistPart(org, reco, cs.sps->getBitDepth(toChannelType(compID)), compID, DF_SSE);
+#endif
   }
 
   cs.dist += distortion;
@@ -3786,25 +3798,45 @@ void IntraSearch::xIntraCodingTUBlock(TransformUnit &tu, const ComponentID &comp
       PelBuf tmpRecLuma = m_tmpStorageLCU.getBuf(tmpArea1);
       tmpRecLuma.copyFrom(piReco);
       tmpRecLuma.rspSignal(m_pcReshape->getInvLUT());
+#if INTRA_INTER_MEM_EVAL_EN
+      ruiDist += m_pcRdCost->getDistPart(piOrg, tmpRecLuma, sps.getBitDepth(toChannelType(compID)), compID, DF_INTRA_SSE_WTD, &orgLuma);
+#else
       ruiDist += m_pcRdCost->getDistPart(piOrg, tmpRecLuma, sps.getBitDepth(toChannelType(compID)), compID, DF_SSE_WTD, &orgLuma);
+#endif
     }
     else
     {
+#if INTRA_INTER_MEM_EVAL_EN
+      ruiDist += m_pcRdCost->getDistPart(piOrg, piReco, bitDepth, compID, DF_INTRA_SSE_WTD, &orgLuma);
+      if( jointCbCr )
+      {
+        ruiDist += m_pcRdCost->getDistPart(crOrg, crReco, bitDepth, COMPONENT_Cr, DF_INTRA_SSE_WTD, &orgLuma);
+      }
+#else
       ruiDist += m_pcRdCost->getDistPart(piOrg, piReco, bitDepth, compID, DF_SSE_WTD, &orgLuma);
       if( jointCbCr )
       {
         ruiDist += m_pcRdCost->getDistPart(crOrg, crReco, bitDepth, COMPONENT_Cr, DF_SSE_WTD, &orgLuma);
       }
+#endif
     }
   }
   else
 #endif
   {
+#if INTRA_INTER_MEM_EVAL_EN
+    ruiDist += m_pcRdCost->getDistPart( piOrg, piReco, bitDepth, compID, DF_INTRA_SSE );
+    if( jointCbCr )
+    {
+      ruiDist += m_pcRdCost->getDistPart( crOrg, crReco, bitDepth, COMPONENT_Cr, DF_INTRA_SSE );
+    }
+#else
     ruiDist += m_pcRdCost->getDistPart( piOrg, piReco, bitDepth, compID, DF_SSE );
     if( jointCbCr )
     {
       ruiDist += m_pcRdCost->getDistPart( crOrg, crReco, bitDepth, COMPONENT_Cr, DF_SSE );
     }
+#endif
   }
 }
 
@@ -3991,11 +4023,20 @@ void IntraSearch::xIntraCodingACTTUBlock(TransformUnit &tu, const ComponentID &c
 #endif 
   m_pcTrQuant->lambdaAdjustColorTrans(false);
 
+#if INTRA_INTER_MEM_EVAL_EN
+  ruiDist += m_pcRdCost->getDistPart(piOrgResi, piResi, sps.getBitDepth(toChannelType(compID)), compID, DF_INTRA_SSE);
+  if (jointCbCr)
+  {
+    ruiDist += m_pcRdCost->getDistPart(crOrgResi, crResi, sps.getBitDepth(toChannelType(COMPONENT_Cr)), COMPONENT_Cr, DF_INTRA_SSE);
+  }
+#else
   ruiDist += m_pcRdCost->getDistPart(piOrgResi, piResi, sps.getBitDepth(toChannelType(compID)), compID, DF_SSE);
   if (jointCbCr)
   {
     ruiDist += m_pcRdCost->getDistPart(crOrgResi, crResi, sps.getBitDepth(toChannelType(COMPONENT_Cr)), COMPONENT_Cr, DF_SSE);
   }
+#endif
+  
 }
 
 bool IntraSearch::xIntraCodingLumaISP(CodingStructure& cs, Partitioner& partitioner, const double bestCostSoFar)
@@ -5235,16 +5276,28 @@ bool IntraSearch::xRecurIntraCodingACTQT(CodingStructure &cs, Partitioner &parti
           PelBuf tmpRecLuma = m_tmpStorageLCU.getBuf(tmpArea1);
           tmpRecLuma.copyFrom(piReco);
           tmpRecLuma.rspSignal(m_pcReshape->getInvLUT());
+#if INTRA_INTER_MEM_EVAL_EN
+          totalDist += m_pcRdCost->getDistPart(piOrg, tmpRecLuma, sps.getBitDepth(toChannelType(compID)), compID, DF_INTRA_SSE_WTD, &orgLuma);
+#else
           totalDist += m_pcRdCost->getDistPart(piOrg, tmpRecLuma, sps.getBitDepth(toChannelType(compID)), compID, DF_SSE_WTD, &orgLuma);
+#endif
         }
         else
         {
+#if INTRA_INTER_MEM_EVAL_EN
+          totalDist += m_pcRdCost->getDistPart(piOrg, piReco, sps.getBitDepth(toChannelType(compID)), compID, DF_INTRA_SSE_WTD, &orgLuma);
+#else
           totalDist += m_pcRdCost->getDistPart(piOrg, piReco, sps.getBitDepth(toChannelType(compID)), compID, DF_SSE_WTD, &orgLuma);
+#endif
         }
       }
       else
       {
+#if INTRA_INTER_MEM_EVAL_EN        
+        totalDist += m_pcRdCost->getDistPart(piOrg, piReco, sps.getBitDepth(toChannelType(compID)), compID, DF_INTRA_SSE);
+#else
         totalDist += m_pcRdCost->getDistPart(piOrg, piReco, sps.getBitDepth(toChannelType(compID)), compID, DF_SSE);
+#endif
       }
     }
 
@@ -5362,16 +5415,28 @@ bool IntraSearch::xRecurIntraCodingACTQT(CodingStructure &cs, Partitioner &parti
               PelBuf tmpRecLuma = m_tmpStorageLCU.getBuf(tmpArea1);
               tmpRecLuma.copyFrom(piReco);
               tmpRecLuma.rspSignal(m_pcReshape->getInvLUT());
+#if INTRA_INTER_MEM_EVAL_EN
+              distTmp += m_pcRdCost->getDistPart(piOrg, tmpRecLuma, sps.getBitDepth(toChannelType(compID)), compID, DF_INTRA_SSE_WTD, &orgLuma);
+#else
               distTmp += m_pcRdCost->getDistPart(piOrg, tmpRecLuma, sps.getBitDepth(toChannelType(compID)), compID, DF_SSE_WTD, &orgLuma);
+#endif
             }
             else
             {
+#if INTRA_INTER_MEM_EVAL_EN
+              distTmp += m_pcRdCost->getDistPart(piOrg, piReco, sps.getBitDepth(toChannelType(compID)), compID, DF_INTRA_SSE_WTD, &orgLuma);
+#else
               distTmp += m_pcRdCost->getDistPart(piOrg, piReco, sps.getBitDepth(toChannelType(compID)), compID, DF_SSE_WTD, &orgLuma);
+#endif
             }
           }
           else
           {
+#if INTRA_INTER_MEM_EVAL_EN
+            distTmp += m_pcRdCost->getDistPart(piOrg, piReco, sps.getBitDepth(toChannelType(compID)), compID, DF_INTRA_SSE);
+#else
             distTmp += m_pcRdCost->getDistPart(piOrg, piReco, sps.getBitDepth(toChannelType(compID)), compID, DF_SSE);
+#endif            
           }
         }
 
