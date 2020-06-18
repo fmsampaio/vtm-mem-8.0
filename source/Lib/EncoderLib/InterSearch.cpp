@@ -39,6 +39,14 @@
 #include "MemoryTracer.h"
 #include "InterSearch.h"
 
+#include "CommonDef.h"
+
+#if DBG_DIST_FUNCS
+extern bool isIMEDistortion;
+extern bool isFMEDistortion;
+extern bool isAffineDistortion;
+extern std::fstream fpDistDebug;
+#endif
 
 #include "CommonLib/CommonDef.h"
 #include "CommonLib/Rom.h"
@@ -3310,6 +3318,7 @@ void InterSearch::xMotionEstimation(PredictionUnit& pu, PelUnitBuf& origBuf, Ref
   MemoryTracer::initPU(0, 0, iRefIdxPred);
 #endif
 
+
   if( pu.cu->cs->sps->getUseBcw() && pu.cu->BcwIdx != BCW_DEFAULT && !bBi && xReadBufferedUniMv(pu, eRefPicList, iRefIdxPred, rcMvPred, rcMv, ruiBits, ruiCost) )
   {
     return;
@@ -3390,6 +3399,13 @@ void InterSearch::xMotionEstimation(PredictionUnit& pu, PelUnitBuf& origBuf, Ref
   m_currRefPicList = eRefPicList;
   m_currRefPicIndex = iRefIdxPred;
   m_skipFracME = false;
+
+#if DBG_DIST_FUNCS
+  isIMEDistortion = true;
+  fpDistDebug.open("dist-ime.log", std::fstream::app);
+
+#endif
+
   //  Do integer search
   if( ( m_motionEstimationSearchMethod == MESEARCH_FULL ) || bBi || bQTBTMV )
   {
@@ -3468,6 +3484,14 @@ void InterSearch::xMotionEstimation(PredictionUnit& pu, PelUnitBuf& origBuf, Ref
     }
   }
 
+
+#if DBG_DIST_FUNCS
+  isIMEDistortion = false;
+  isFMEDistortion = true;
+  fpDistDebug.close();
+  fpDistDebug.open("dist-fme.log", std::fstream::app);
+#endif
+
   DTRACE( g_trace_ctx, D_ME, "%d %d %d :MECostFPel<L%d,%d>: %d,%d,%dx%d, %d", DTRACE_GET_COUNTER( g_trace_ctx, D_ME ), pu.cu->slice->getPOC(), 0, ( int ) eRefPicList, ( int ) bBi, pu.Y().x, pu.Y().y, pu.Y().width, pu.Y().height, ruiCost );
   // sub-pel refinement for sub-pel resolution
   if ( pu.cu->imv == 0 || pu.cu->imv == IMV_HPEL )
@@ -3500,6 +3524,12 @@ void InterSearch::xMotionEstimation(PredictionUnit& pu, PelUnitBuf& origBuf, Ref
     rcMv.changePrecision(MV_PRECISION_INT, MV_PRECISION_INTERNAL);
     xPatternSearchIntRefine( pu, cStruct, rcMv, rcMvPred, riMVPIdx, ruiBits, ruiCost, amvpInfo, fWeight);
   }
+
+#if DBG_DIST_FUNCS
+  isFMEDistortion = false;
+  fpDistDebug.close();
+#endif
+
   DTRACE(g_trace_ctx, D_ME, "   MECost<L%d,%d>: %6d (%d)  MV:%d,%d\n", (int)eRefPicList, (int)bBi, ruiCost, ruiBits, rcMv.getHor() << 2, rcMv.getVer() << 2);
 }
 
@@ -4592,6 +4622,13 @@ void InterSearch::xPredAffineInterSearch( PredictionUnit&       pu,
                                         , uint32_t              bcwIdxBits
                                          )
 {
+  
+
+#if DBG_DIST_FUNCS
+  isAffineDistortion = true;
+  fpDistDebug.open("dist-affine.log", std::fstream::app);
+#endif
+
   const Slice &slice = *pu.cu->slice;
 
   affineCost = std::numeric_limits<Distortion>::max();
@@ -5280,6 +5317,10 @@ void InterSearch::xPredAffineInterSearch( PredictionUnit&       pu,
   {
     pu.cu->BcwIdx = BCW_DEFAULT;
   }
+#if DBG_DIST_FUNCS
+  isAffineDistortion = false;
+  fpDistDebug.close();
+#endif
 }
 
 void solveEqual(double dEqualCoeff[7][7], int iOrder, double *dAffinePara)

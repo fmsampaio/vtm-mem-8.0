@@ -52,6 +52,15 @@ static const uint32_t settingHelpWidth = 84;
 static const uint32_t settingValueWidth = 3;
 // --------------------------------------------------------------------------------------------------------------------- //
 
+#if DBG_DIST_FUNCS
+bool isIMEDistortion;
+bool isFMEDistortion;
+bool isAffineDistortion;
+bool isIntraDistortion;
+std::fstream fpDistDebug;
+#endif
+
+
 //macro value printing function
 
 #define PRINT_CONSTANT(NAME, NAME_WIDTH, VALUE_WIDTH) std::cout << std::setw(NAME_WIDTH) << #NAME << " = " << std::setw(VALUE_WIDTH) << NAME << std::endl;
@@ -125,6 +134,22 @@ int main(int argc, char* argv[])
   TComHash::initBlockSizeToIndex();
 
   char** layerArgv = new char*[argc];
+
+
+#if DBG_DIST_FUNCS
+  isIMEDistortion = false;
+  isFMEDistortion = false;
+  isAffineDistortion = false;
+  isIntraDistortion = false;
+  fpDistDebug.open("dist-intra.log", std::fstream::out);
+  fpDistDebug.close();
+  fpDistDebug.open("dist-ime.log", std::fstream::out);
+  fpDistDebug.close();
+  fpDistDebug.open("dist-fme.log", std::fstream::out);
+  fpDistDebug.close();
+  fpDistDebug.open("dist-affine.log", std::fstream::out);
+  fpDistDebug.close();
+#endif
 
   do
   {
@@ -318,6 +343,10 @@ int main(int argc, char* argv[])
          (endClock - startClock) * 1.0 / CLOCKS_PER_SEC,
          encTime / 1000.0);
 #endif
+
+#if DBG_DIST_FUNCS
+  fpDistDebug.close();
+#endif  
 
   return 0;
 }

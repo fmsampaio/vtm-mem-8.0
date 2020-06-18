@@ -37,6 +37,13 @@
 
 #include "IntraSearch.h"
 
+#include "CommonDef.h"
+
+#if DBG_DIST_FUNCS
+extern bool isIntraDistortion;
+extern std::fstream fpDistDebug;
+#endif
+
 #include "EncModeCtrl.h"
 
 #include "CommonLib/CommonDef.h"
@@ -49,6 +56,8 @@
 
 #include <math.h>
 #include <limits>
+#include <fstream>
+
  //! \ingroup EncoderLib
  //! \{
 #define PLTCtx(c) SubCtx( Ctx::Palette, c )
@@ -369,6 +378,11 @@ double IntraSearch::findInterCUCost( CodingUnit &cu )
 
 bool IntraSearch::estIntraPredLumaQT(CodingUnit &cu, Partitioner &partitioner, const double bestCostSoFar, bool mtsCheckRangeFlag, int mtsFirstCheckId, int mtsLastCheckId, bool moreProbMTSIdxFirst, CodingStructure* bestCS)
 {
+#if DBG_DIST_FUNCS
+  isIntraDistortion = true;
+  fpDistDebug.open("dist-intra.log", std::fstream::app);
+#endif
+
   CodingStructure       &cs            = *cu.cs;
   const SPS             &sps           = *cs.sps;
   const uint32_t             uiWidthBit    = floorLog2(partitioner.currArea().lwidth() );
@@ -1240,11 +1254,20 @@ bool IntraSearch::estIntraPredLumaQT(CodingUnit &cu, Partitioner &partitioner, c
   //===== reset context models =====
   m_CABACEstimator->getCtx() = ctxStart;
 
+#if DBG_DIST_FUNCS
+  isIntraDistortion = false;
+  fpDistDebug.close();
+#endif
+
   return validReturn;
 }
 
 void IntraSearch::estIntraPredChromaQT( CodingUnit &cu, Partitioner &partitioner, const double maxCostAllowed )
 {
+#if DBG_DIST_FUNCS
+  isIntraDistortion = true;
+  fpDistDebug.open("dist-intra.log", std::fstream::app);
+#endif
   const ChromaFormat format   = cu.chromaFormat;
   const uint32_t    numberValidComponents = getNumberValidComponents(format);
   CodingStructure &cs = *cu.cs;
@@ -1560,6 +1583,11 @@ void IntraSearch::estIntraPredChromaQT( CodingUnit &cu, Partitioner &partitioner
     cs.dist        = uiBestDist;
     cu.bdpcmModeChroma = bestBDPCMMode;
   }
+
+#if DBG_DIST_FUNCS
+  isIntraDistortion = false;
+  fpDistDebug.close();
+#endif
 
   //----- restore context models -----
   m_CABACEstimator->getCtx() = ctxStart;

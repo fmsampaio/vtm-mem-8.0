@@ -45,6 +45,16 @@
 
 #include <limits>
 
+#include <fstream>
+
+#if DBG_DIST_FUNCS
+extern bool isIMEDistortion;
+extern bool isFMEDistortion;
+extern bool isAffineDistortion;
+extern bool isIntraDistortion;
+extern std::fstream fpDistDebug;
+#endif
+
 //! \ingroup CommonLib
 //! \{
 
@@ -595,6 +605,10 @@ Distortion RdCost::getDistPart( const CPelBuf &org, const CPelBuf &cur, int bitD
 
 Distortion RdCost::xGetSAD_full( const DistParam& rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetSAD_full" << std::endl;
+#endif  
+
   CHECK( rcDtParam.applyWeight, "Cannot apply weight when using full-bit SAD!" );
   const Pel* piOrg = rcDtParam.org.buf;
   const Pel* piCur = rcDtParam.cur.buf;
@@ -621,6 +635,9 @@ Distortion RdCost::xGetSAD_full( const DistParam& rcDtParam )
 
 Distortion RdCost::xGetSAD( const DistParam& rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetSAD" << std::endl;
+#endif
   if ( rcDtParam.applyWeight )
   {
     return RdCostWeightPrediction::xGetSADw( rcDtParam );
@@ -658,6 +675,9 @@ Distortion RdCost::xGetSAD( const DistParam& rcDtParam )
 
 Distortion RdCost::xGetSAD4( const DistParam& rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetSAD4" << std::endl;
+#endif
   if ( rcDtParam.applyWeight )
   {
     return RdCostWeightPrediction::xGetSADw( rcDtParam );
@@ -690,6 +710,9 @@ Distortion RdCost::xGetSAD4( const DistParam& rcDtParam )
 
 Distortion RdCost::xGetSAD8( const DistParam& rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetSAD8" << std::endl;
+#endif
   if ( rcDtParam.applyWeight )
   {
     return RdCostWeightPrediction::xGetSADw( rcDtParam );
@@ -726,6 +749,9 @@ Distortion RdCost::xGetSAD8( const DistParam& rcDtParam )
 
 Distortion RdCost::xGetSAD16( const DistParam& rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetSAD16" << std::endl;
+#endif
   if ( rcDtParam.applyWeight )
   {
     return RdCostWeightPrediction::xGetSADw( rcDtParam );
@@ -770,6 +796,9 @@ Distortion RdCost::xGetSAD16( const DistParam& rcDtParam )
 
 Distortion RdCost::xGetSAD12( const DistParam& rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetSAD12" << std::endl;
+#endif
   if ( rcDtParam.applyWeight )
   {
     return RdCostWeightPrediction::xGetSADw( rcDtParam );
@@ -810,6 +839,9 @@ Distortion RdCost::xGetSAD12( const DistParam& rcDtParam )
 
 Distortion RdCost::xGetSAD16N( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetSAD16N" << std::endl;
+#endif
   const Pel* piOrg  = rcDtParam.org.buf;
   const Pel* piCur  = rcDtParam.cur.buf;
   int  iRows        = rcDtParam.org.height;
@@ -852,6 +884,9 @@ Distortion RdCost::xGetSAD16N( const DistParam &rcDtParam )
 
 Distortion RdCost::xGetSAD32( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetSAD32" << std::endl;
+#endif
   if ( rcDtParam.applyWeight )
   {
     return RdCostWeightPrediction::xGetSADw( rcDtParam );
@@ -912,6 +947,9 @@ Distortion RdCost::xGetSAD32( const DistParam &rcDtParam )
 
 Distortion RdCost::xGetSAD24( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetSAD24" << std::endl;
+#endif
   if ( rcDtParam.applyWeight )
   {
     return RdCostWeightPrediction::xGetSADw( rcDtParam );
@@ -964,6 +1002,9 @@ Distortion RdCost::xGetSAD24( const DistParam &rcDtParam )
 
 Distortion RdCost::xGetSAD64( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetSAD64" << std::endl;
+#endif
   if ( rcDtParam.applyWeight )
   {
     return RdCostWeightPrediction::xGetSADw( rcDtParam );
@@ -1056,6 +1097,9 @@ Distortion RdCost::xGetSAD64( const DistParam &rcDtParam )
 
 Distortion RdCost::xGetSAD48( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetSAD48" << std::endl;
+#endif
   if ( rcDtParam.applyWeight )
   {
     return RdCostWeightPrediction::xGetSADw( rcDtParam );
@@ -1139,6 +1183,10 @@ Distortion RdCost::xGetSAD48( const DistParam &rcDtParam )
 
 Distortion RdCost::xGetMRSAD( const DistParam& rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetMRSAD" << std::endl;
+#endif
+
   const Pel* piOrg           = rcDtParam.org.buf;
   const Pel* piCur           = rcDtParam.cur.buf;
   const int  iCols           = rcDtParam.org.width;
@@ -1182,6 +1230,10 @@ Distortion RdCost::xGetMRSAD( const DistParam& rcDtParam )
 
 Distortion RdCost::xGetMRSAD4( const DistParam& rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetMRSAD4" << std::endl;
+#endif
+
   const Pel* piOrg   = rcDtParam.org.buf;
   const Pel* piCur   = rcDtParam.cur.buf;
   int  iRows         = rcDtParam.org.height;
@@ -1221,6 +1273,10 @@ Distortion RdCost::xGetMRSAD4( const DistParam& rcDtParam )
 
 Distortion RdCost::xGetMRSAD8( const DistParam& rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetMRSAD8" << std::endl;
+#endif
+
   const Pel* piOrg      = rcDtParam.org.buf;
   const Pel* piCur      = rcDtParam.cur.buf;
   int  iRows            = rcDtParam.org.height;
@@ -1267,6 +1323,10 @@ Distortion RdCost::xGetMRSAD8( const DistParam& rcDtParam )
 
 Distortion RdCost::xGetMRSAD16( const DistParam& rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetMRSAD16" << std::endl;
+#endif
+
   const Pel* piOrg      = rcDtParam.org.buf;
   const Pel* piCur      = rcDtParam.cur.buf;
   int  iRows            = rcDtParam.org.height;
@@ -1329,6 +1389,10 @@ Distortion RdCost::xGetMRSAD16( const DistParam& rcDtParam )
 
 Distortion RdCost::xGetMRSAD12( const DistParam& rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetMRSAD12" << std::endl;
+#endif
+
   const Pel* piOrg      = rcDtParam.org.buf;
   const Pel* piCur      = rcDtParam.cur.buf;
   int  iRows            = rcDtParam.org.height;
@@ -1383,6 +1447,10 @@ Distortion RdCost::xGetMRSAD12( const DistParam& rcDtParam )
 
 Distortion RdCost::xGetMRSAD16N( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetMRSAD16N" << std::endl;
+#endif
+
   const Pel* piOrg  = rcDtParam.org.buf;
   const Pel* piCur  = rcDtParam.cur.buf;
   int  iRows        = rcDtParam.org.height;
@@ -1451,6 +1519,10 @@ Distortion RdCost::xGetMRSAD16N( const DistParam &rcDtParam )
 
 Distortion RdCost::xGetMRSAD32( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetMRSAD32" << std::endl;
+#endif
+
   const Pel* piOrg      = rcDtParam.org.buf;
   const Pel* piCur      = rcDtParam.cur.buf;
   int  iRows            = rcDtParam.org.height;
@@ -1545,6 +1617,10 @@ Distortion RdCost::xGetMRSAD32( const DistParam &rcDtParam )
 
 Distortion RdCost::xGetMRSAD24( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetMRSAD24" << std::endl;
+#endif
+
   const Pel* piOrg      = rcDtParam.org.buf;
   const Pel* piCur      = rcDtParam.cur.buf;
   int  iRows            = rcDtParam.org.height;
@@ -1623,6 +1699,10 @@ Distortion RdCost::xGetMRSAD24( const DistParam &rcDtParam )
 
 Distortion RdCost::xGetMRSAD64( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetMRSAD64" << std::endl;
+#endif
+
   const Pel* piOrg      = rcDtParam.org.buf;
   const Pel* piCur      = rcDtParam.cur.buf;
   int  iRows            = rcDtParam.org.height;
@@ -1781,6 +1861,10 @@ Distortion RdCost::xGetMRSAD64( const DistParam &rcDtParam )
 
 Distortion RdCost::xGetMRSAD48( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetMRSAD48" << std::endl;
+#endif
+
   const Pel* piOrg      = rcDtParam.org.buf;
   const Pel* piCur      = rcDtParam.cur.buf;
   int  iRows            = rcDtParam.org.height;
@@ -1911,6 +1995,10 @@ Distortion RdCost::xGetMRSAD48( const DistParam &rcDtParam )
 
 Distortion RdCost::xGetSSE( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetSSE" << std::endl;
+#endif
+
   if ( rcDtParam.applyWeight )
   {
     return RdCostWeightPrediction::xGetSSEw( rcDtParam );
@@ -1944,6 +2032,10 @@ Distortion RdCost::xGetSSE( const DistParam &rcDtParam )
 
 Distortion RdCost::xGetSSE4( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetSSE4" << std::endl;
+#endif
+
   if ( rcDtParam.applyWeight )
   {
     CHECK( rcDtParam.org.width != 4, "Invalid size" );
@@ -1978,6 +2070,10 @@ Distortion RdCost::xGetSSE4( const DistParam &rcDtParam )
 
 Distortion RdCost::xGetSSE8( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetSSE8" << std::endl;
+#endif
+
   if ( rcDtParam.applyWeight )
   {
     CHECK( rcDtParam.org.width != 8, "Invalid size" );
@@ -2015,6 +2111,10 @@ Distortion RdCost::xGetSSE8( const DistParam &rcDtParam )
 
 Distortion RdCost::xGetSSE16( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetSSE16" << std::endl;
+#endif
+
   if ( rcDtParam.applyWeight )
   {
     CHECK( rcDtParam.org.width != 16, "Invalid size" );
@@ -2061,6 +2161,10 @@ Distortion RdCost::xGetSSE16( const DistParam &rcDtParam )
 
 Distortion RdCost::xGetSSE16N( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetSSE16N" << std::endl;
+#endif
+
   if ( rcDtParam.applyWeight )
   {
     return RdCostWeightPrediction::xGetSSEw( rcDtParam );
@@ -2109,6 +2213,10 @@ Distortion RdCost::xGetSSE16N( const DistParam &rcDtParam )
 
 Distortion RdCost::xGetSSE32( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetSSE32" << std::endl;
+#endif
+
   if ( rcDtParam.applyWeight )
   {
     CHECK( rcDtParam.org.width != 32, "Invalid size" );
@@ -2171,6 +2279,10 @@ Distortion RdCost::xGetSSE32( const DistParam &rcDtParam )
 
 Distortion RdCost::xGetSSE64( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetSSE64" << std::endl;
+#endif
+
   if ( rcDtParam.applyWeight )
   {
     CHECK( rcDtParam.org.width != 64, "Invalid size" );
@@ -2268,6 +2380,10 @@ Distortion RdCost::xGetSSE64( const DistParam &rcDtParam )
 
 Distortion RdCost::xCalcHADs2x2( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur, int iStep )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetSSE64" << std::endl;
+#endif
+
   Distortion satd = 0;
   TCoeff diff[4], m[4];
   CHECK( iStep != 1, "Invalid step" );
@@ -2290,6 +2406,10 @@ Distortion RdCost::xCalcHADs2x2( const Pel *piOrg, const Pel *piCur, int iStride
 
 Distortion RdCost::xCalcHADs4x4( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur, int iStep )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xCalcHADs4x4" << std::endl;
+#endif
+
   int k;
   Distortion satd = 0;
   TCoeff diff[16], m[16], d[16];
@@ -2386,6 +2506,10 @@ Distortion RdCost::xCalcHADs4x4( const Pel *piOrg, const Pel *piCur, int iStride
 
 Distortion RdCost::xCalcHADs8x8( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur, int iStep )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xCalcHADs8x8" << std::endl;
+#endif
+
   int k, i, j, jj;
   Distortion sad = 0;
   TCoeff diff[64], m1[8][8], m2[8][8], m3[8][8];
@@ -2483,6 +2607,10 @@ Distortion RdCost::xCalcHADs8x8( const Pel *piOrg, const Pel *piCur, int iStride
 
 Distortion RdCost::xCalcHADs16x8( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur )
 {   //need to add SIMD implementation ,JCA
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xCalcHADs16x8" << std::endl;
+#endif
+
   int k, i, j, jj, sad = 0;
   int diff[128], m1[8][16], m2[8][16];
   for( k = 0; k < 128; k += 16 )
@@ -2629,6 +2757,10 @@ Distortion RdCost::xCalcHADs16x8( const Pel *piOrg, const Pel *piCur, int iStrid
 
 Distortion RdCost::xCalcHADs8x16( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xCalcHADs8x16" << std::endl;
+#endif
+
   int k, i, j, jj, sad = 0;
   int diff[128], m1[16][8], m2[16][8];
   for( k = 0; k < 128; k += 8 )
@@ -2765,6 +2897,10 @@ Distortion RdCost::xCalcHADs8x16( const Pel *piOrg, const Pel *piCur, int iStrid
 }
 Distortion RdCost::xCalcHADs4x8( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xCalcHADs4x8" << std::endl;
+#endif
+
   int k, i, j, jj, sad = 0;
   int diff[32], m1[8][4], m2[8][4];
   for( k = 0; k < 32; k += 4 )
@@ -2839,6 +2975,10 @@ Distortion RdCost::xCalcHADs4x8( const Pel *piOrg, const Pel *piCur, int iStride
 
 Distortion RdCost::xCalcHADs8x4( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xCalcHADs8x4" << std::endl;
+#endif
+
   int k, i, j, jj, sad = 0;
   int diff[32], m1[4][8], m2[4][8];
   for( k = 0; k < 32; k += 8 )
@@ -2918,6 +3058,10 @@ Distortion RdCost::xCalcHADs8x4( const Pel *piOrg, const Pel *piCur, int iStride
 
 Distortion RdCost::xGetHADs( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetHADs" << std::endl;
+#endif
+
   if( rcDtParam.applyWeight )
   {
     return RdCostWeightPrediction::xGetHADsw( rcDtParam );
@@ -3045,6 +3189,10 @@ Distortion RdCost::xGetHADs( const DistParam &rcDtParam )
 
 Distortion RdCost::xIntraGetSAD_full( const DistParam& rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetSAD_full" << std::endl;
+#endif
+
   CHECK( rcDtParam.applyWeight, "Cannot apply weight when using full-bit SAD!" );
   const Pel* piOrg = rcDtParam.org.buf;
   const Pel* piCur = rcDtParam.cur.buf;
@@ -3071,6 +3219,10 @@ Distortion RdCost::xIntraGetSAD_full( const DistParam& rcDtParam )
 
 Distortion RdCost::xIntraGetSAD( const DistParam& rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetSAD" << std::endl;
+#endif
+
   if ( rcDtParam.applyWeight )
   {
     return RdCostWeightPrediction::xGetSADw( rcDtParam );
@@ -3108,6 +3260,10 @@ Distortion RdCost::xIntraGetSAD( const DistParam& rcDtParam )
 
 Distortion RdCost::xIntraGetSAD4( const DistParam& rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetSAD4" << std::endl;
+#endif
+
   if ( rcDtParam.applyWeight )
   {
     return RdCostWeightPrediction::xGetSADw( rcDtParam );
@@ -3140,6 +3296,10 @@ Distortion RdCost::xIntraGetSAD4( const DistParam& rcDtParam )
 
 Distortion RdCost::xIntraGetSAD8( const DistParam& rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetSAD8" << std::endl;
+#endif
+
   if ( rcDtParam.applyWeight )
   {
     return RdCostWeightPrediction::xGetSADw( rcDtParam );
@@ -3176,6 +3336,10 @@ Distortion RdCost::xIntraGetSAD8( const DistParam& rcDtParam )
 
 Distortion RdCost::xIntraGetSAD16( const DistParam& rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetSAD16" << std::endl;
+#endif
+
   if ( rcDtParam.applyWeight )
   {
     return RdCostWeightPrediction::xGetSADw( rcDtParam );
@@ -3220,6 +3384,10 @@ Distortion RdCost::xIntraGetSAD16( const DistParam& rcDtParam )
 
 Distortion RdCost::xIntraGetSAD12( const DistParam& rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetSAD12" << std::endl;
+#endif
+
   if ( rcDtParam.applyWeight )
   {
     return RdCostWeightPrediction::xGetSADw( rcDtParam );
@@ -3260,6 +3428,10 @@ Distortion RdCost::xIntraGetSAD12( const DistParam& rcDtParam )
 
 Distortion RdCost::xIntraGetSAD16N( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetSAD16N" << std::endl;
+#endif
+
   const Pel* piOrg  = rcDtParam.org.buf;
   const Pel* piCur  = rcDtParam.cur.buf;
   int  iRows        = rcDtParam.org.height;
@@ -3302,6 +3474,10 @@ Distortion RdCost::xIntraGetSAD16N( const DistParam &rcDtParam )
 
 Distortion RdCost::xIntraGetSAD32( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetSAD32" << std::endl;
+#endif
+
   if ( rcDtParam.applyWeight )
   {
     return RdCostWeightPrediction::xGetSADw( rcDtParam );
@@ -3362,6 +3538,10 @@ Distortion RdCost::xIntraGetSAD32( const DistParam &rcDtParam )
 
 Distortion RdCost::xIntraGetSAD24( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetSAD24" << std::endl;
+#endif
+
   if ( rcDtParam.applyWeight )
   {
     return RdCostWeightPrediction::xGetSADw( rcDtParam );
@@ -3414,6 +3594,10 @@ Distortion RdCost::xIntraGetSAD24( const DistParam &rcDtParam )
 
 Distortion RdCost::xIntraGetSAD64( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetSAD64" << std::endl;
+#endif
+
   if ( rcDtParam.applyWeight )
   {
     return RdCostWeightPrediction::xGetSADw( rcDtParam );
@@ -3506,6 +3690,10 @@ Distortion RdCost::xIntraGetSAD64( const DistParam &rcDtParam )
 
 Distortion RdCost::xIntraGetSAD48( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetSAD48" << std::endl;
+#endif
+
   if ( rcDtParam.applyWeight )
   {
     return RdCostWeightPrediction::xGetSADw( rcDtParam );
@@ -3589,6 +3777,10 @@ Distortion RdCost::xIntraGetSAD48( const DistParam &rcDtParam )
 
 Distortion RdCost::xIntraGetMRSAD( const DistParam& rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetMRSAD" << std::endl;
+#endif
+
   const Pel* piOrg           = rcDtParam.org.buf;
   const Pel* piCur           = rcDtParam.cur.buf;
   const int  iCols           = rcDtParam.org.width;
@@ -3632,6 +3824,10 @@ Distortion RdCost::xIntraGetMRSAD( const DistParam& rcDtParam )
 
 Distortion RdCost::xIntraGetMRSAD4( const DistParam& rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetMRSAD4" << std::endl;
+#endif
+
   const Pel* piOrg   = rcDtParam.org.buf;
   const Pel* piCur   = rcDtParam.cur.buf;
   int  iRows         = rcDtParam.org.height;
@@ -3671,6 +3867,10 @@ Distortion RdCost::xIntraGetMRSAD4( const DistParam& rcDtParam )
 
 Distortion RdCost::xIntraGetMRSAD8( const DistParam& rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetMRSAD8" << std::endl;
+#endif
+
   const Pel* piOrg      = rcDtParam.org.buf;
   const Pel* piCur      = rcDtParam.cur.buf;
   int  iRows            = rcDtParam.org.height;
@@ -3717,6 +3917,10 @@ Distortion RdCost::xIntraGetMRSAD8( const DistParam& rcDtParam )
 
 Distortion RdCost::xIntraGetMRSAD16( const DistParam& rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetMRSAD16" << std::endl;
+#endif
+
   const Pel* piOrg      = rcDtParam.org.buf;
   const Pel* piCur      = rcDtParam.cur.buf;
   int  iRows            = rcDtParam.org.height;
@@ -3779,6 +3983,10 @@ Distortion RdCost::xIntraGetMRSAD16( const DistParam& rcDtParam )
 
 Distortion RdCost::xIntraGetMRSAD12( const DistParam& rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetMRSAD12" << std::endl;
+#endif
+
   const Pel* piOrg      = rcDtParam.org.buf;
   const Pel* piCur      = rcDtParam.cur.buf;
   int  iRows            = rcDtParam.org.height;
@@ -3833,6 +4041,10 @@ Distortion RdCost::xIntraGetMRSAD12( const DistParam& rcDtParam )
 
 Distortion RdCost::xIntraGetMRSAD16N( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetMRSAD16N" << std::endl;
+#endif
+
   const Pel* piOrg  = rcDtParam.org.buf;
   const Pel* piCur  = rcDtParam.cur.buf;
   int  iRows        = rcDtParam.org.height;
@@ -3901,6 +4113,10 @@ Distortion RdCost::xIntraGetMRSAD16N( const DistParam &rcDtParam )
 
 Distortion RdCost::xIntraGetMRSAD32( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetMRSAD32" << std::endl;
+#endif
+
   const Pel* piOrg      = rcDtParam.org.buf;
   const Pel* piCur      = rcDtParam.cur.buf;
   int  iRows            = rcDtParam.org.height;
@@ -3995,6 +4211,10 @@ Distortion RdCost::xIntraGetMRSAD32( const DistParam &rcDtParam )
 
 Distortion RdCost::xIntraGetMRSAD24( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetMRSAD24" << std::endl;
+#endif
+
   const Pel* piOrg      = rcDtParam.org.buf;
   const Pel* piCur      = rcDtParam.cur.buf;
   int  iRows            = rcDtParam.org.height;
@@ -4073,6 +4293,10 @@ Distortion RdCost::xIntraGetMRSAD24( const DistParam &rcDtParam )
 
 Distortion RdCost::xIntraGetMRSAD64( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetMRSAD64" << std::endl;
+#endif
+
   const Pel* piOrg      = rcDtParam.org.buf;
   const Pel* piCur      = rcDtParam.cur.buf;
   int  iRows            = rcDtParam.org.height;
@@ -4231,6 +4455,10 @@ Distortion RdCost::xIntraGetMRSAD64( const DistParam &rcDtParam )
 
 Distortion RdCost::xIntraGetMRSAD48( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetMRSAD48" << std::endl;
+#endif
+
   const Pel* piOrg      = rcDtParam.org.buf;
   const Pel* piCur      = rcDtParam.cur.buf;
   int  iRows            = rcDtParam.org.height;
@@ -4361,6 +4589,10 @@ Distortion RdCost::xIntraGetMRSAD48( const DistParam &rcDtParam )
 
 Distortion RdCost::xIntraGetSSE( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetSSE" << std::endl;
+#endif
+
   if ( rcDtParam.applyWeight )
   {
     return RdCostWeightPrediction::xGetSSEw( rcDtParam );
@@ -4394,6 +4626,10 @@ Distortion RdCost::xIntraGetSSE( const DistParam &rcDtParam )
 
 Distortion RdCost::xIntraGetSSE4( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetSSE4" << std::endl;
+#endif
+
   if ( rcDtParam.applyWeight )
   {
     CHECK( rcDtParam.org.width != 4, "Invalid size" );
@@ -4428,6 +4664,10 @@ Distortion RdCost::xIntraGetSSE4( const DistParam &rcDtParam )
 
 Distortion RdCost::xIntraGetSSE8( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetSSE8" << std::endl;
+#endif
+
   if ( rcDtParam.applyWeight )
   {
     CHECK( rcDtParam.org.width != 8, "Invalid size" );
@@ -4465,6 +4705,10 @@ Distortion RdCost::xIntraGetSSE8( const DistParam &rcDtParam )
 
 Distortion RdCost::xIntraGetSSE16( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetSSE16" << std::endl;
+#endif
+
   if ( rcDtParam.applyWeight )
   {
     CHECK( rcDtParam.org.width != 16, "Invalid size" );
@@ -4511,6 +4755,10 @@ Distortion RdCost::xIntraGetSSE16( const DistParam &rcDtParam )
 
 Distortion RdCost::xIntraGetSSE16N( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetSSE16N" << std::endl;
+#endif
+
   if ( rcDtParam.applyWeight )
   {
     return RdCostWeightPrediction::xGetSSEw( rcDtParam );
@@ -4559,6 +4807,10 @@ Distortion RdCost::xIntraGetSSE16N( const DistParam &rcDtParam )
 
 Distortion RdCost::xIntraGetSSE32( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetSSE32" << std::endl;
+#endif
+
   if ( rcDtParam.applyWeight )
   {
     CHECK( rcDtParam.org.width != 32, "Invalid size" );
@@ -4621,6 +4873,10 @@ Distortion RdCost::xIntraGetSSE32( const DistParam &rcDtParam )
 
 Distortion RdCost::xIntraGetSSE64( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetSSE64" << std::endl;
+#endif
+
   if ( rcDtParam.applyWeight )
   {
     CHECK( rcDtParam.org.width != 64, "Invalid size" );
@@ -4718,6 +4974,10 @@ Distortion RdCost::xIntraGetSSE64( const DistParam &rcDtParam )
 
 Distortion RdCost::xIntraCalcHADs2x2( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur, int iStep )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraCalcHADs2x2" << std::endl;
+#endif
+
   Distortion satd = 0;
   TCoeff diff[4], m[4];
   CHECK( iStep != 1, "Invalid step" );
@@ -4740,6 +5000,10 @@ Distortion RdCost::xIntraCalcHADs2x2( const Pel *piOrg, const Pel *piCur, int iS
 
 Distortion RdCost::xIntraCalcHADs4x4( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur, int iStep )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraCalcHADs4x4" << std::endl;
+#endif
+
   int k;
   Distortion satd = 0;
   TCoeff diff[16], m[16], d[16];
@@ -4836,6 +5100,10 @@ Distortion RdCost::xIntraCalcHADs4x4( const Pel *piOrg, const Pel *piCur, int iS
 
 Distortion RdCost::xIntraCalcHADs8x8( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur, int iStep )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraCalcHADs8x8" << std::endl;
+#endif
+
   int k, i, j, jj;
   Distortion sad = 0;
   TCoeff diff[64], m1[8][8], m2[8][8], m3[8][8];
@@ -4933,6 +5201,11 @@ Distortion RdCost::xIntraCalcHADs8x8( const Pel *piOrg, const Pel *piCur, int iS
 
 Distortion RdCost::xIntraCalcHADs16x8( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur )
 {   //need to add SIMD implementation ,JCA
+
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraCalcHADs16x8" << std::endl;
+#endif
+
   int k, i, j, jj, sad = 0;
   int diff[128], m1[8][16], m2[8][16];
   for( k = 0; k < 128; k += 16 )
@@ -5079,6 +5352,10 @@ Distortion RdCost::xIntraCalcHADs16x8( const Pel *piOrg, const Pel *piCur, int i
 
 Distortion RdCost::xIntraCalcHADs8x16( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraCalcHADs8x16" << std::endl;
+#endif
+
   int k, i, j, jj, sad = 0;
   int diff[128], m1[16][8], m2[16][8];
   for( k = 0; k < 128; k += 8 )
@@ -5213,8 +5490,13 @@ Distortion RdCost::xIntraCalcHADs8x16( const Pel *piOrg, const Pel *piCur, int i
 
   return sad;
 }
+
 Distortion RdCost::xIntraCalcHADs4x8( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraCalcHADs4x8" << std::endl;
+#endif
+
   int k, i, j, jj, sad = 0;
   int diff[32], m1[8][4], m2[8][4];
   for( k = 0; k < 32; k += 4 )
@@ -5289,6 +5571,10 @@ Distortion RdCost::xIntraCalcHADs4x8( const Pel *piOrg, const Pel *piCur, int iS
 
 Distortion RdCost::xIntraCalcHADs8x4( const Pel *piOrg, const Pel *piCur, int iStrideOrg, int iStrideCur )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraCalcHADs8x4" << std::endl;
+#endif
+
   int k, i, j, jj, sad = 0;
   int diff[32], m1[4][8], m2[4][8];
   for( k = 0; k < 32; k += 8 )
@@ -5368,6 +5654,10 @@ Distortion RdCost::xIntraCalcHADs8x4( const Pel *piOrg, const Pel *piCur, int iS
 
 Distortion RdCost::xIntraGetHADs( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetHADs" << std::endl;
+#endif
+
   if( rcDtParam.applyWeight )
   {
     return RdCostWeightPrediction::xGetHADsw( rcDtParam );
@@ -5604,6 +5894,10 @@ void RdCost::updateReshapeLumaLevelToWeightTable(SliceReshapeInfo &sliceReshape,
 
 Distortion RdCost::getWeightedMSE(int compIdx, const Pel org, const Pel cur, const uint32_t uiShift, const Pel orgLuma)
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "getWeightedMSE" << std::endl;
+#endif
+
   Distortion distortionVal = 0;
   Intermediate_Int iTemp = org - cur;
   CHECK( org<0, "");
@@ -5637,6 +5931,10 @@ Distortion RdCost::getWeightedMSE(int compIdx, const Pel org, const Pel cur, con
 
 Distortion RdCost::xGetSSE_WTD( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "getWeightedMSE" << std::endl;
+#endif
+
   if( rcDtParam.applyWeight )
   {
     return RdCostWeightPrediction::xGetSSEw( rcDtParam );  // ignore it for now
@@ -5670,6 +5968,10 @@ Distortion RdCost::xGetSSE_WTD( const DistParam &rcDtParam )
 
 Distortion RdCost::xGetSSE2_WTD( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetSSE2_WTD" << std::endl;
+#endif
+
   if( rcDtParam.applyWeight )
   {
     CHECK( rcDtParam.org.width != 2, "" );
@@ -5701,6 +6003,10 @@ Distortion RdCost::xGetSSE2_WTD( const DistParam &rcDtParam )
 
 Distortion RdCost::xGetSSE4_WTD( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetSSE4_WTD" << std::endl;
+#endif
+
   if( rcDtParam.applyWeight )
   {
     CHECK( rcDtParam.org.width != 4, "" );
@@ -5734,6 +6040,10 @@ Distortion RdCost::xGetSSE4_WTD( const DistParam &rcDtParam )
 
 Distortion RdCost::xGetSSE8_WTD( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetSSE8_WTD" << std::endl;
+#endif
+
   if( rcDtParam.applyWeight )
   {
     CHECK( rcDtParam.org.width != 8, "" );
@@ -5771,6 +6081,10 @@ Distortion RdCost::xGetSSE8_WTD( const DistParam &rcDtParam )
 
 Distortion RdCost::xGetSSE16_WTD( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetSSE16_WTD" << std::endl;
+#endif
+
   if( rcDtParam.applyWeight )
   {
     CHECK( rcDtParam.org.width != 16, "" );
@@ -5815,6 +6129,10 @@ Distortion RdCost::xGetSSE16_WTD( const DistParam &rcDtParam )
 
 Distortion RdCost::xGetSSE16N_WTD( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetSSE16N_WTD" << std::endl;
+#endif
+
   if( rcDtParam.applyWeight )
   {
     return RdCostWeightPrediction::xGetSSEw( rcDtParam );
@@ -5861,6 +6179,10 @@ Distortion RdCost::xGetSSE16N_WTD( const DistParam &rcDtParam )
 
 Distortion RdCost::xGetSSE32_WTD( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetSSE32_WTD" << std::endl;
+#endif
+
   if( rcDtParam.applyWeight )
   {
     CHECK( rcDtParam.org.width != 32, "" );
@@ -5921,6 +6243,10 @@ Distortion RdCost::xGetSSE32_WTD( const DistParam &rcDtParam )
 
 Distortion RdCost::xGetSSE64_WTD( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetSSE64_WTD" << std::endl;
+#endif
+
   if( rcDtParam.applyWeight )
   {
     CHECK( rcDtParam.org.width != 64, "" );
@@ -6022,6 +6348,10 @@ Pel orgCopy[MAX_CU_SIZE * MAX_CU_SIZE];
 
 Distortion RdCost::xGetMRHADs( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetMRHADs" << std::endl;
+#endif
+
   const Pel offset = rcDtParam.org.meanDiff( rcDtParam.cur );
 
   PelBuf modOrg( orgCopy, rcDtParam.org );
@@ -6041,6 +6371,10 @@ Distortion RdCost::xGetMRHADs( const DistParam &rcDtParam )
 
 Distortion RdCost::getIntraWeightedMSE(int compIdx, const Pel org, const Pel cur, const uint32_t uiShift, const Pel orgLuma)
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "getIntraWeightedMSE" << std::endl;
+#endif
+
   Distortion distortionVal = 0;
   Intermediate_Int iTemp = org - cur;
   CHECK( org<0, "");
@@ -6074,6 +6408,10 @@ Distortion RdCost::getIntraWeightedMSE(int compIdx, const Pel org, const Pel cur
 
 Distortion RdCost::xIntraGetSSE_WTD( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetSSE_WTD" << std::endl;
+#endif
+
   if( rcDtParam.applyWeight )
   {
     return RdCostWeightPrediction::xGetSSEw( rcDtParam );  // ignore it for now
@@ -6115,6 +6453,10 @@ Distortion RdCost::xIntraGetSSE_WTD( const DistParam &rcDtParam )
 
 Distortion RdCost::xIntraGetSSE2_WTD( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetSSE2_WTD" << std::endl;
+#endif
+
   if( rcDtParam.applyWeight )
   {
     CHECK( rcDtParam.org.width != 2, "" );
@@ -6154,6 +6496,10 @@ Distortion RdCost::xIntraGetSSE2_WTD( const DistParam &rcDtParam )
 
 Distortion RdCost::xIntraGetSSE4_WTD( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetSSE4_WTD" << std::endl;
+#endif
+
   if( rcDtParam.applyWeight )
   {
     CHECK( rcDtParam.org.width != 4, "" );
@@ -6195,6 +6541,10 @@ Distortion RdCost::xIntraGetSSE4_WTD( const DistParam &rcDtParam )
 
 Distortion RdCost::xIntraGetSSE8_WTD( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetSSE8_WTD" << std::endl;
+#endif
+
   if( rcDtParam.applyWeight )
   {
     CHECK( rcDtParam.org.width != 8, "" );
@@ -6240,6 +6590,10 @@ Distortion RdCost::xIntraGetSSE8_WTD( const DistParam &rcDtParam )
 
 Distortion RdCost::xIntraGetSSE16_WTD( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetSSE16_WTD" << std::endl;
+#endif
+
   if( rcDtParam.applyWeight )
   {
     CHECK( rcDtParam.org.width != 16, "" );
@@ -6292,6 +6646,10 @@ Distortion RdCost::xIntraGetSSE16_WTD( const DistParam &rcDtParam )
 
 Distortion RdCost::xIntraGetSSE16N_WTD( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetSSE16N_WTD" << std::endl;
+#endif
+
   if( rcDtParam.applyWeight )
   {
     return RdCostWeightPrediction::xGetSSEw( rcDtParam );
@@ -6346,6 +6704,10 @@ Distortion RdCost::xIntraGetSSE16N_WTD( const DistParam &rcDtParam )
 
 Distortion RdCost::xIntraGetSSE32_WTD( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetSSE32_WTD" << std::endl;
+#endif
+
   if( rcDtParam.applyWeight )
   {
     CHECK( rcDtParam.org.width != 32, "" );
@@ -6414,6 +6776,10 @@ Distortion RdCost::xIntraGetSSE32_WTD( const DistParam &rcDtParam )
 
 Distortion RdCost::xIntraGetSSE64_WTD( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetSSE64_WTD" << std::endl;
+#endif
+
   if( rcDtParam.applyWeight )
   {
     CHECK( rcDtParam.org.width != 64, "" );
@@ -6515,6 +6881,10 @@ Distortion RdCost::xIntraGetSSE64_WTD( const DistParam &rcDtParam )
 
 Distortion RdCost::xIntraGetMRHADs( const DistParam &rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xIntraGetMRHADs" << std::endl;
+#endif
+
   const Pel offset = rcDtParam.org.meanDiff( rcDtParam.cur );
 
   PelBuf modOrg( orgCopy, rcDtParam.org );
@@ -6560,6 +6930,10 @@ void RdCost::setDistParam( DistParam &rcDP, const CPelBuf &org, const Pel* piRef
 
 Distortion RdCost::xGetSADwMask( const DistParam& rcDtParam )
 {
+#if DBG_DIST_FUNCS
+  fpDistDebug << "xGetSADwMask" << std::endl;
+#endif
+
   if ( rcDtParam.applyWeight )
   {
     return RdCostWeightPrediction::xGetSADw( rcDtParam );
