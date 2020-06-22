@@ -118,8 +118,9 @@
 // ====================================================================================================================
 
 #define MEM_TRACE_EN 0
-#define INTRA_INTER_MEM_EVAL_EN 1
+#define INTRA_INTER_MEM_EVAL_EN 0
 #define DBG_DIST_FUNCS 0
+#define DECODER_MEMTRACE_EN 1
 
 typedef enum
 {

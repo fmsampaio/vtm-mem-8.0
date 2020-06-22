@@ -45,6 +45,8 @@
 
 #include "CommonLib/dtrace_buffer.h"
 
+#include "CommonLib/CommonDef.h"
+
 #if RExt__DECODER_DEBUG_TOOL_STATISTICS
 #include "CommonLib/CodingStatistics.h"
 #endif
@@ -661,6 +663,27 @@ void DecCu::xFillPCMBuffer(CodingUnit &cu)
 
 void DecCu::xReconInter(CodingUnit &cu)
 {
+  
+#if DECODER_MEMTRACE_EN
+  int numFramesL0 = cu.slice->getNumRefIdx(REF_PIC_LIST_0);
+  int numFramesL1 = cu.slice->getNumRefIdx(REF_PIC_LIST_1);
+
+  std::cout << numFramesL0 << " " << numFramesL1 << std::endl;
+
+  for(int f=0; f<numFramesL0; f++) {
+    std::cout << cu.slice->getRefPic(REF_PIC_LIST_0, f)->getPOC() << " ";
+    cu.slice->getRefPic(REF_PIC_LIST_0, f)->getRecoBuf(COMPONENT_Y, cu.slice->getSPS()->getWrapAroundEnabledFlag());
+    cu.slice->getRefPic(REF_PIC_LIST_0, f)->getRecoBuf(COMPONENT_Cb, cu.slice->getSPS()->getWrapAroundEnabledFlag());
+    cu.slice->getRefPic(REF_PIC_LIST_0, f)->getRecoBuf(COMPONENT_Cr, cu.slice->getSPS()->getWrapAroundEnabledFlag());
+  }
+  std::cout << std::endl;
+
+  for(int f=0; f<numFramesL1; f++) {
+    std::cout << cu.slice->getRefPic(REF_PIC_LIST_1, f)->getPOC() << " ";
+  }
+  std::cout << std::endl;
+#endif
+
 #if !JVET_Q0806
   if( cu.triangle )
   {
